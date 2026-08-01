@@ -76,53 +76,6 @@ if (token) {
 
   </div>
 
-  <!-- Client-side script handling submissions cleanly -->
-  <script>
-    const loginForm = document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logout-btn');
-    const errorAlert = document.getElementById('error-alert');
-
-  // Inside src/pages/users.astro script block:
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (errorAlert) errorAlert.classList.add('hidden');
-
-      const username = (document.getElementById('username') as HTMLInputElement).value;
-      const password = (document.getElementById('password') as HTMLInputElement).value;
-
-      // FIX: Force dynamic absolute URL paths to prevent Vercel routing dropped strings
-      const targetUrl = `${window.location.origin}/api/login`;
-
-      const res = await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        window.location.reload();
-      } else {
-        if (errorAlert) {
-          errorAlert.textContent = data.error || 'Authentication error occurred.';
-          errorAlert.classList.remove('hidden');
-        }
-      }
-    });
-  }
-
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
-        // Execute a quick endpoint or clean client side cookie rewrite
-        document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        window.location.reload();
-      });
-    }
-  </script>
-
-
 
 
 
