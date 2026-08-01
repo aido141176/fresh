@@ -7,8 +7,6 @@ export const POST = async ({ request, cookies }) => {
     }
 
     const { username, password } = body;
-
-    // Securely resolve remote handshake target string
     const wpTargetEndpoint = 'https://amcd.com.au';
 
     const wpResponse = await fetch(wpTargetEndpoint, {
@@ -20,33 +18,41 @@ export const POST = async ({ request, cookies }) => {
       body: JSON.stringify({ username, password }),
     });
 
-    const data = await wpResponse.json().catch(() => null);
+    // Extract the response as raw text first to prevent JSON parsing crashes
+    const rawTextResponse = await wpResponse.text();
+    console.log("RAW WORDPRESS BACKEND RESPONSE STRING:", rawTextResponse);
 
-    if (!wpResponse.ok || !data) {
+    // Attempt to safely parse the string into a JSON object
+    let data = null;
+    try {
+      data = JSON.parse(rawTextResponse);
+    } catch (e) {
       return new Response(JSON.stringify({ 
-        error: data?.message || `WordPress connection error status code: ${wpResponse.status}` 
-      }), { status: wpResponse.status });
+        error: 'WordPress sent back non-JSON text output.', 
+        details: rawTextResponse.substring(0, 200) 
+      }), { status: 502 });
     }
 
-    if (!data.token) {
-      return new Response(JSON.stringify({ error: 'JWT parsing target skipped by host api.' }), { status: 502 });
+    // Check if the response contains the token
+    if (wpResponse.ok && data && data.token) {
+      cookies.set('wp_jwt_token', data.token, {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7
+      });
+      return new Response(JSON.stringify({ success: true, user: data.user_display_name }), { status: 200 });
     }
 
-    // Set cookie state cleanly
-    cookies.set('wp_jwt_token', data.token, {
-      path: '/',
-      httpOnly: true,
-      secure: true, // Vercel is strictly HTTPS, keep true for production tracking
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7
-    });
-
-    return new Response(JSON.stringify({ success: true, user: data.user_display_name }), { status: 200 });
+    // If it hit 200 but lacks a token key, display the payload keys
+    return new Response(JSON.stringify({ 
+      error: `WordPress responded with 200 OK but missed token key. Keys present: ${data ? Object.keys(data).join(', ') : 'none'}` 
+    }), { status: 200 });
 
   } catch (err) {
-    // Explicitly fallback message payload mapping
     return new Response(JSON.stringify({ 
-      error: 'Vercel Serverless Internal Runtime Exception', 
+      error: 'Serverless Runtime Exception', 
       details: err.message 
     }), { status: 500 });
   }
