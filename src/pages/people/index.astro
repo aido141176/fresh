@@ -1,0 +1,44 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const userres = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/users");
+const users = await userres.json();
+
+
+
+
+
+import '../../style/global.css';
+
+
+---
+
+
+<Layout title="Users">
+
+   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {
+        users.map((user: any) => {
+        // 1. Strip HTML tags from the WordPress excerpt
+
+        
+            
+        return (
+            <a href={`/people/${user.slug}/`}
+            class="post-card"
+            data-title={user.name.toLowerCase()}
+            >
+                <div class="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
+
+                <h2 class="text-xl font-bold text-slate-900 h-15 mt-4">hello{user.name}</h2>
+                    <img src={user.acf.profile_image.sizes.profile_thumbnail} alt="Descriptive alt text" />
+
+                </div>
+            </a>
+        );
+        })
+    }
+
+    </div> 
+</Layout>

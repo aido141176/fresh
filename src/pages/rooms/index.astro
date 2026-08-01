@@ -1,0 +1,44 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const roomres = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/rooms");
+const rooms = await roomres.json();
+
+
+
+
+
+import '../../style/global.css';
+
+
+---
+
+
+<Layout title="Rooms">
+
+   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {
+        rooms.map((room: any) => {
+        // 1. Strip HTML tags from the WordPress excerpt
+
+        
+            
+        return (
+            <a href={`/rooms/${room.slug}/`}
+            class="post-card"
+            data-title={room.name}
+            >
+                <div class="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
+
+                <h2 class="text-xl font-bold text-slate-900 h-15 mt-4">hello{room.name}</h2>
+  
+
+                </div>
+            </a>
+        );
+        })
+    }
+
+    </div> 
+</Layout>

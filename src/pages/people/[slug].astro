@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const { slug } = Astro.params;
+
+let res = await fetch(`https://amcd.com.au/amcdwp/wp-json/wp/v2/users?slug=${slug}`);
+let [user] = await res.json();
+
+// The getStaticPaths() is required for static Astro sites.
+// If using SSR, you will not need this function.
+export async function getStaticPaths() {
+  let data = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/users");
+  let users = await data.json();
+
+  
+
+  return users.map((user: any) => ({
+    params: { slug: user.slug },
+    props: { user: user },
+  }));
+}
+---
+<Layout title={user.name}>
+                <div class="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
+
+                <h2 class="text-xl font-bold text-slate-900 h-15 mt-4">{user.name}</h2>
+                    <img src={user.acf.profile_image.sizes.profile_thumbnail} alt="Descriptive alt text" />
+
+                </div>
+</Layout>
