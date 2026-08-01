@@ -20,7 +20,6 @@ if (token) {
       Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
   } catch (error) {
-    // FIX: Removed TypeScript type assignment format (error: any) which causes template compiler syntax crashes
     console.error("Profile connection failed:", error);
     profileError = error instanceof Error ? error.message : 'Unknown connection fault';
   }
@@ -43,14 +42,14 @@ if (token) {
       <p class="text-slate-400 text-sm mt-1">Authentication check panel via headless WordPress.</p>
     </div>
 
-    {profileError && (
+    <!-- Wrap conditional html fragments securely to satisfy Vite's compiler parsing -->
+    {profileError ? (
       <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
         <strong>Server Notice:</strong> {profileError}
       </div>
-    )}
+    ) : null}
 
     {userProfile ? (
-      <!-- Logged In State UI -->
       <div class="space-y-4">
         <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
           <p class="text-emerald-400 font-medium text-sm">✓ Connected Successfully</p>
@@ -67,7 +66,6 @@ if (token) {
         </button>
       </div>
     ) : (
-      <!-- Logged Out State UI (Display Input Form) -->
       <div class="space-y-4">
         <div id="error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-medium text-red-400"></div>
 
@@ -90,18 +88,25 @@ if (token) {
     )}
   </div>
 
-  <script>
-    const loginForm = document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logout-btn');
-    const errorAlert = document.getElementById('error-alert');
+<script>
+  const loginForm = document.getElementById('login-form');
+  const logoutBtn = document.getElementById('logout-btn');
+  const errorAlert = document.getElementById('error-alert');
 
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (errorAlert) errorAlert.classList.add('hidden');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (errorAlert) errorAlert.classList.add('hidden');
 
-        const username = (document.getElementById('username') as HTMLInputElement).value;
-        const password = (document.getElementById('password') as HTMLInputElement).value;
+      const usernameEl = document.getElementById('username');
+      const passwordEl = document.getElementById('password');
+      
+      // ✅ FIX: Use 'instanceof HTMLInputElement' guards. 
+      // This guarantees to TypeScript that these elements contain a .value property,
+      // without using template-breaking "as" keywords.
+      if (usernameEl instanceof HTMLInputElement && passwordEl instanceof HTMLInputElement) {
+        const username = usernameEl.value;
+        const password = passwordEl.value;
 
         try {
           const res = await fetch(`${window.location.origin}/api/login`, {
@@ -121,21 +126,21 @@ if (token) {
             }
           }
         } catch (err) {
-          // FIX: Removed client-side type assignment formatting (err: any) to ensure standard browser execution matching
           if (errorAlert) {
             errorAlert.textContent = 'Connection route missing or offline.';
             errorAlert.classList.remove('hidden');
           }
         }
-      });
-    }
+      }
+    });
+  }
 
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        window.location.reload();
-      });
-    }
-  </script>
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.reload();
+    });
+  }
+</script>
 </body>
 </html>
