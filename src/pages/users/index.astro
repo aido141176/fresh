@@ -1,14 +1,12 @@
 ---
 // src/pages/users.astro
-import locationData from '../../data/bali.json';
 
 const token = Astro.cookies.get('wp_jwt_token')?.value;
 let userProfile = null;
-let connectionError = null;
+let profileError = null;
 
 if (token) {
   try {
-    // Add a real browser signature to try and slide past basic server firewall blocks
     const response = await fetch('https://amcd.com.au', {
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -19,13 +17,124 @@ if (token) {
     if (response.ok) {
       userProfile = await response.json();
     } else {
-      // If the token is rejected with a 401, wipe the stale cookie session cleanly
       Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
-  } catch (error) {
-    // Prevents a 502/500 from crashing the whole page if your host blocks Vercel's IP
-    console.error("WordPress connection dropped by host firewall:", error);
-    connectionError = "Unable to connect to the profile server. Please check your firewall configurations.";
+  } catch (error: any) {
+    console.error("Profile connection failed:", error);
+    profileError = error.message;
   }
 }
 ---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Accounts Authentication</title>
+  <!-- Direct Tailwind CDN fallback injection to guarantee styles compile under any build node -->
+  <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-slate-800 rounded-2xl border border-slate-700 shadow-xl p-6">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Flatmates Dashboard</h2>
+      <p class="text-slate-400 text-sm mt-1">Authentication check panel via headless WordPress.</p>
+    </div>
+
+    {profileError && (
+      <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
+        <strong>Server Notice:</strong> {profileError}
+      </div>
+    )}
+
+    {userProfile ? (
+      <!-- Logged In State UI -->
+      <div class="space-y-4">
+        <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+          <p class="text-emerald-400 font-medium text-sm">✓ Connected Successfully</p>
+          <p class="text-white text-lg font-bold mt-1">Hello, {userProfile.name}!</p>
+        </div>
+        
+        <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-700 font-mono text-xs text-slate-400 space-y-1">
+          <p><strong>Username:</strong> {userProfile.slug}</p>
+          <p><strong>Account ID:</strong> {userProfile.id}</p>
+        </div>
+
+        <button id="logout-btn" class="w-full h-11 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-all">
+          Sign Out Safely
+        </button>
+      </div>
+    ) : (
+      <!-- Logged Out State UI (Display Input Form) -->
+      <div class="space-y-4">
+        <div id="error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-medium text-red-400"></div>
+
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Username or Email</label>
+            <input type="text" id="username" required autocomplete="username" class="w-full h-11 px-4 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+            <input type="password" id="password" required autocomplete="current-password" class="w-full h-11 px-4 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+          </div>
+
+          <button type="submit" class="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-md transition-all pt-1">
+            Sign In Account
+          </button>
+        </form>
+      </div>
+    )}
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const logoutBtn = document.getElementById('logout-btn');
+    const errorAlert = document.getElementById('error-alert');
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (errorAlert) errorAlert.classList.add('hidden');
+
+        const username = (document.getElementById('username') as HTMLInputElement).value;
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+
+        try {
+          const res = await fetch(`${window.location.origin}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            window.location.reload();
+          } else {
+            if (errorAlert) {
+              errorAlert.textContent = data.error || 'Authentication error occurred.';
+              errorAlert.classList.remove('hidden');
+            }
+          }
+        } catch (err: any) {
+          if (errorAlert) {
+            errorAlert.textContent = 'Connection route missing or offline.';
+            errorAlert.classList.remove('hidden');
+          }
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        window.location.reload();
+      });
+    }
+  </script>
+</body>
+</html>
