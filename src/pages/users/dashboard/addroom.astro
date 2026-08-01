@@ -1,0 +1,22 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+const userres = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/users");
+const users = await userres.json();
+
+const base = "https://wilayah.id/api/";
+
+const regionData = await fetch(`${base}regencies/51.json`);
+const jsonResponse = await regionData.json();
+const regions = jsonResponse.data || [];
+import '../../../style/global.css';
+
+import PlacesForm from '../../../components/PlacesForm.astro';
+
+import locationData from '../../../data/bali.json';
+---
+
+<layout>
+<PlacesForm />
+
+</layout>
