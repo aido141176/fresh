@@ -9,7 +9,7 @@ let userProfile = null;
 
 // If a token exists, validate it or pull profile information directly to display state
 if (token) {
-  const response = await fetch('https://amcd.com.au/amcdwp/', {
+  const response = await fetch('https://amcd.com.au', {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   if (response.ok) {
