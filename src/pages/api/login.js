@@ -8,30 +8,30 @@ export const POST = async ({ request, cookies }) => {
     }
 
     const { username, password } = body;
-
-    // Use the exact v1 endpoint verified by your WordPress dashboard link
     const wpTargetEndpoint = 'https://amcd.com.au';
 
     const wpResponse = await fetch(wpTargetEndpoint, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        'Accept': 'application/json',
+        // Forces a clean web browser signature to bypass automated web host firewalls
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
       },
       body: JSON.stringify({ username, password }),
     });
 
     const rawText = await wpResponse.text();
-    
+
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      // Captures the raw HTML firewall block text to display inside your Vercel Logs panel
-      console.error("CRITICAL FIREWALL BLOCK DETECTED. RAW OUTPUT RECEIVED:", rawText);
+      // Captures the raw HTML firewall webpage to print directly inside your Vercel logs
+      console.error("FIREWALL ROADBLOCK DETECTED. RAW REJECTION HTML:", rawText);
       return new Response(JSON.stringify({ 
-        error: 'Your WordPress host is actively blocking Vercel server requests.',
-        details: rawText.substring(0, 100)
+        error: 'Your WordPress web host firewall dropped Vercel\'s connection request.',
+        details: rawText.substring(0, 120)
       }), { status: 502 });
     }
 
@@ -39,18 +39,17 @@ export const POST = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ error: data?.message || 'Invalid user credentials.' }), { status: 401 });
     }
 
-    // Lock down token session securely
     cookies.set('wp_jwt_token', data.token, {
       path: '/',
       httpOnly: true,
       secure: true, 
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7 // 1 week duration
+      maxAge: 60 * 60 * 24 * 7 // 7 days duration
     });
 
     return new Response(JSON.stringify({ success: true, user: data.user_display_name }), { status: 200 });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Serverless execution failure.', details: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Serverless function exception.', details: err.message }), { status: 500 });
   }
 };
