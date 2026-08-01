@@ -1,6 +1,6 @@
 ---
 // src/pages/users/index.astro
-
+import '../../style/global.css';
 const token = Astro.cookies.get('wp_jwt_token')?.value;
 let userProfile = null;
 let profileError = null;
