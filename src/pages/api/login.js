@@ -10,7 +10,7 @@ export const POST = async ({ request, cookies }) => {
     const { username, password } = body;
     
     // Aligned directly with your verified plugin base path route
-    const wpTargetEndpoint = 'https://amcd.com.au';
+    const wpTargetEndpoint = 'https://amcd.com.au/amcdwp/wp-json/jwt-auth/v1/token';
 
     const wpResponse = await fetch(wpTargetEndpoint, {
       method: 'POST',
