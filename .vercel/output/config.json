@@ -1,0 +1,80 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/logout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/blog/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/people/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/people/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/rooms/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/rooms/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/users/dashboard/addperson/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/users/dashboard/addroom/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/users/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/users/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/404/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render",
+			"status": 404
+		}
+	]
+}
