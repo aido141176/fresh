@@ -9,7 +9,7 @@ let [room] = await res.json();
 // The getStaticPaths() is required for static Astro sites.
 // If using SSR, you will not need this function.
 export async function getStaticPaths() {
-  let data = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/rooms");
+  let data = await fetch("https://api.amcd.com.au/wp-json/wp/v2/rooms");
   let rooms = await data.json();
 
   

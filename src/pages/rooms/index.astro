@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-const roomres = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/rooms");
+const roomres = await fetch("https://api.amcd.com.au/wp-json/wp/v2/rooms");
 const rooms = await roomres.json();
 
 

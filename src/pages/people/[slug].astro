@@ -3,13 +3,13 @@ import Layout from '../../layouts/Layout.astro';
 
 const { slug } = Astro.params;
 
-let res = await fetch(`https://amcd.com.au/amcdwp/wp-json/wp/v2/users?slug=${slug}`);
+let res = await fetch(`https://api.amcd.com.au/wp-json/wp/v2/users?slug=${slug}`);
 let [user] = await res.json();
 
 // The getStaticPaths() is required for static Astro sites.
 // If using SSR, you will not need this function.
 export async function getStaticPaths() {
-  let data = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/users");
+  let data = await fetch("https://api.amcd.com.au/wp-json/wp/v2/users");
   let users = await data.json();
 
   

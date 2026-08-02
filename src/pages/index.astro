@@ -2,7 +2,7 @@
 import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
 
-const res = await fetch("https://amcd.com.au/amcdwp/wp-json/wp/v2/posts");
+const res = await fetch("https://api.amcd.com.au/wp-json/wp/v2/posts");
 const posts = await res.json();
 
 const categories = [
