@@ -8,52 +8,46 @@ export const POST = async ({ request, cookies }) => {
     }
 
     const { username, password } = body;
-    
-    // ✅ SWITCH THIS URL to your newly created cPanel subdomain endpoint!
-    // Example: 'https://amcd.com.au'
-    const wpTargetEndpoint = 'https://amcd.com.au';
 
-    console.log(`Routing handshake directly to unmapped destination: ${wpTargetEndpoint}`);
-
-    const wpResponse = await fetch(wpTargetEndpoint, {
+    // 1. Exact options configuration matching your successful JWT dashboard test
+    const options = {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-      },
-      body: JSON.stringify({ username, password }),
-    });
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    };
 
-    const rawText = await wpResponse.text();
+    // 2. Target the exact endpoint that gave you the successful token response
+    const wpTargetEndpoint = 'https://api.amcd.com.au/wp-json/jwt-auth/v1/token';
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (e) {
-      console.error("Vercel routing caught unexpected server text structure instead of JSON:", rawText);
-      return new Response(JSON.stringify({ 
-        error: 'The server route returned a webpage template instead of API data.',
-        details: rawText.substring(0, 100)
-      }), { status: 502 });
-    }
+    const wpResponse = await fetch(wpTargetEndpoint, options);
+    const data = await wpResponse.json().catch(() => null);
 
+    // 3. Handle unsuccessful credentials or server rejections
     if (!wpResponse.ok || !data || !data.token) {
-      return new Response(JSON.stringify({ error: data?.message || 'Invalid user login parameters.' }), { status: 401 });
+      return new Response(JSON.stringify({ 
+        error: data?.message || 'Authentication rejected by WordPress.' 
+      }), { status: wpResponse.status || 401 });
     }
 
-    // Save your authenticated tenant/agent session into a secure cookie
+    // 4. Save the valid token string into an HTTP-only browser cookie
     cookies.set('wp_jwt_token', data.token, {
       path: '/',
       httpOnly: true,
       secure: true, 
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7 // Session locked for 7 days
+      maxAge: 60 * 60 * 24 * 7 // Logged in for 7 days
     });
 
-    return new Response(JSON.stringify({ success: true, user: data.user_display_name }), { status: 200 });
+    // 5. Send back a clean success payload to trigger the frontend page refresh
+    return new Response(JSON.stringify({ 
+      success: true, 
+      user: data.user_display_name 
+    }), { status: 200 });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Serverless execution gateway timed out.', details: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ 
+      error: 'Internal handler crash.', 
+      details: err.message 
+    }), { status: 500 });
   }
 };

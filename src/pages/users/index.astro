@@ -1,38 +1,30 @@
 ---
 // src/pages/users/index.astro
-import '../../style/global.css';
+
 const token = Astro.cookies.get('wp_jwt_token')?.value;
 let userProfile = null;
 let profileError = null;
 
 if (token) {
   try {
-// Inside the frontmatter block at the top of src/pages/users/index.astro:
+    // Target the specific user endpoint, passing the Bearer token in headers
     const response = await fetch('https://amcd.com.au', {
+      method: 'GET',
       headers: { 
         'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        'Accept': 'application/json'
       }
     });
-
     
-    const rawText = await response.text();
-    
-    // Safely parse the response to catch HTML pages before they crash the template
-    try {
-      if (response.ok) {
-        userProfile = JSON.parse(rawText);
-      } else {
-        Astro.cookies.delete('wp_jwt_token', { path: '/' });
-      }
-    } catch (parseError) {
-      console.error("Profile response was not valid JSON. Content received:", rawText.substring(0, 150));
-      profileError = "The server sent an unexpected response format. Please review your hosting firewall rules.";
+    if (response.ok) {
+      userProfile = await response.json();
+    } else {
+      // If WordPress says the token is invalid, clean up the cookie
+      Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
   } catch (error) {
-    console.error("Profile connection failed:", error);
-    profileError = error instanceof Error ? error.message : 'Connection dropped by host server';
+    console.error("Profile fetch error:", error);
+    profileError = "Could not verify active session.";
   }
 }
 ---
@@ -55,11 +47,12 @@ if (token) {
 
     {profileError ? (
       <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
-        <strong>Server Notice:</strong> {profileError}
+        <strong>Status Notice:</strong> {profileError}
       </div>
     ) : null}
 
     {userProfile ? (
+      <!-- Authenticated UI View Layout Frame -->
       <div class="space-y-4">
         <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
           <p class="text-emerald-400 font-medium text-sm">✓ Connected Successfully</p>
@@ -76,6 +69,7 @@ if (token) {
         </button>
       </div>
     ) : (
+      <!-- Empty Input Form Block -->
       <div class="space-y-4">
         <div id="error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-medium text-red-400"></div>
 
@@ -96,8 +90,6 @@ if (token) {
         </form>
       </div>
     )}
-
-    <p>hello</p>
   </div>
 
   <script>
@@ -127,7 +119,7 @@ if (token) {
             const data = await res.json();
 
             if (res.ok && data.success) {
-              window.location.reload();
+              window.location.reload(); // Reload to read the newly set cookie session
             } else {
               if (errorAlert) {
                 errorAlert.textContent = data.error || 'Authentication error occurred.';
