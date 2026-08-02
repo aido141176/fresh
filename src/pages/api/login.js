@@ -11,7 +11,7 @@ export const POST = async ({ request, cookies }) => {
     
     // ✅ SWITCH THIS URL to your newly created cPanel subdomain endpoint!
     // Example: 'https://amcd.com.au'
-    const wpTargetEndpoint = 'https://api.amcd.com.au/wp-json/jwt-auth/v1/token';
+    const wpTargetEndpoint = 'https://api.amcd.com.au';
 
     console.log(`Routing handshake directly to unmapped destination: ${wpTargetEndpoint}`);
 
