@@ -1,13 +1,13 @@
 ---
 // src/pages/users/index.astro
 
+// At the very top of src/pages/users/index.astro:
 const token = Astro.cookies.get('wp_jwt_token')?.value;
 let userProfile = null;
 let profileError = null;
 
 if (token) {
   try {
-    // Target the plugin's dedicated validation route instead of the core user directory
     const response = await fetch('https://amcd.com.au', {
       method: 'POST',
       headers: { 
@@ -18,15 +18,14 @@ if (token) {
     
     const data = await response.json().catch(() => null);
 
-    if (response.ok && data && data.code === 'jwt_auth_valid_token') {
-      // Token is 100% active and validated! Mock a clean user profile object to pass to the UI
+    // ✅ Match the plugin validation payload parameters exactly
+    if (response.ok && data && (data.code === 'jwt_auth_valid_token' || data.statusCode === 200)) {
       userProfile = {
-        name: "Aiden Cole", // Fallback display name
+        name: data.user_display_name || "Aiden Cole", // Pulls display metadata from payload
         slug: "aido",
         id: "1"
       };
     } else {
-      // Stale or invalid token string, clear the browser session cookie cleanly
       Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
   } catch (error) {
@@ -100,56 +99,65 @@ if (token) {
     )}
   </div>
 
-  <script>
-    const loginForm = document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logout-btn');
-    const errorAlert = document.getElementById('error-alert');
+<!-- Inside src/pages/users/index.astro (The script tag at the bottom) -->
+<script>
+  const loginForm = document.getElementById('login-form');
+  const logoutBtn = document.getElementById('logout-btn');
+  const errorAlert = document.getElementById('error-alert');
 
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (errorAlert) errorAlert.classList.add('hidden');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (errorAlert) errorAlert.classList.add('hidden');
 
-        const usernameEl = document.getElementById('username');
-        const passwordEl = document.getElementById('password');
-        
-        if (usernameEl instanceof HTMLInputElement && passwordEl instanceof HTMLInputElement) {
-          const username = usernameEl.value;
-          const password = passwordEl.value;
+      const usernameEl = document.getElementById('username');
+      const passwordEl = document.getElementById('password');
+      
+      if (usernameEl instanceof HTMLInputElement && passwordEl instanceof HTMLInputElement) {
+        const username = usernameEl.value;
+        const password = passwordEl.value;
 
-          try {
-            const res = await fetch(`${window.location.origin}/api/login`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            });
+        try {
+          const res = await fetch(`${window.location.origin}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
 
-            const data = await res.json();
+          const data = await res.json();
 
-            if (res.ok && data.success) {
-              window.location.reload();
-            } else {
-              if (errorAlert) {
-                errorAlert.textContent = data.error || 'Authentication error occurred.';
-                errorAlert.classList.remove('hidden');
-              }
-            }
-          } catch (err) {
+          if (res.ok && data.success) {
+            // ✅ FIX: Instead of a generic reload, force a clean, intentional URL route rewrite.
+            // Wrapping this inside a tiny 150ms timeout ensures your device finishes writing 
+            // the new secure cookie session block before the server checks it on reload.
+            setTimeout(() => {
+              window.location.href = `${window.location.origin}/users`;
+            }, 150);
+          } else {
             if (errorAlert) {
-              errorAlert.textContent = 'Connection route missing or offline.';
+              errorAlert.textContent = data.error || 'Authentication error occurred.';
               errorAlert.classList.remove('hidden');
             }
           }
+        } catch (err) {
+          if (errorAlert) {
+            errorAlert.textContent = 'Connection route missing or offline.';
+            errorAlert.classList.remove('hidden');
+          }
         }
-      });
-    }
+      }
+    });
+  }
 
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        window.location.reload();
-      });
-    }
-  </script>
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Cleanly clear cookie session and route back
+      document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure=true; samesite=strict';
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/users`;
+      }, 100);
+    });
+  }
+</script>
 </body>
 </html>
