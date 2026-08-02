@@ -1,12 +1,80 @@
 ---
-import Layout from '../../../layouts/Layout.astro';
-
-
+// src/pages/users/dashboard.astro
 ---
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Flatmates Dashboard</title>
+  <script src="https://tailwindcss.com"></script>
 
-<Layout title="Users Dashboard">
+  <!-- 1. STRICT ROUTE GUARD: Runs instantly in the browser header to prevent flash of content -->
+  <script is:inline>
+    const token = localStorage.getItem('wp_session_token');
+    if (!token) {
+      // Instantly eject logged-out users before the HTML body paints to the screen
+      window.location.href = 'https://fresh-sand-zeta.vercel.app/users';
+    }
+  </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col items-center justify-center p-4">
 
-<h1>Users Dashboard</h1>
+  <!-- Main Dashboard Container Card (Visually hidden by default until populated) -->
+  <div id="private-content" class="invisible w-full max-w-2xl bg-slate-800 rounded-2xl border border-slate-700 shadow-xl p-6">
+    
+    <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
+      <div>
+        <!-- Dynamic Target Name Slot -->
+        <h1 class="text-2xl font-bold text-white">Welcome back, <span id="user-display-name" class="text-indigo-400">...</span>!</h1>
+        <p class="text-slate-400 text-sm mt-1">Manage your flatmate profile and active room rentals.</p>
+      </div>
+      
+      <button id="logout-btn" class="h-9 px-4 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition-all">
+        Sign Out
+      </button>
+    </div>
 
-</Layout>
+    <!-- Placeholder Section for Future Room Listing Forms -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-5 bg-slate-900/40 border border-slate-700 rounded-xl hover:border-slate-600 transition-all cursor-pointer">
+        <div class="text-indigo-400 text-lg font-bold">🏠 Post a Room</div>
+        <p class="text-xs text-slate-400 mt-1">Rent out an available room or shared house portfolio space.</p>
+      </div>
+
+      <div class="p-5 bg-slate-900/40 border border-slate-700 rounded-xl hover:border-slate-600 transition-all cursor-pointer">
+        <div class="text-emerald-400 text-lg font-bold">👤 Seeker Profile</div>
+        <p class="text-xs text-slate-400 mt-1">Update your search parameters for neighborhoods in Bali.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 2. Hydrate Dashboard Metadata on Client Mount
+    const privateContent = document.getElementById('private-content');
+    const nameSlot = document.getElementById('user-display-name');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const storedToken = localStorage.getItem('wp_session_token');
+    const storedName = localStorage.getItem('wp_user_name');
+
+    if (storedToken && storedName && privateContent && nameSlot) {
+      // Populate user data straight into the DOM element node
+      nameSlot.textContent = storedName;
+      
+      // Make the layout container cleanly visible to the browser
+      privateContent.classList.remove('invisible');
+    }
+
+    // 3. Clear Session Storage State on Logout Event Trigger
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'https://fresh-sand-zeta.vercel.app/users';
+      });
+    }
+  </script>
+</body>
+</html>
