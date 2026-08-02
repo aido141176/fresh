@@ -7,22 +7,34 @@ let profileError = null;
 
 if (token) {
   try {
-    const response = await fetch('https://api.amcd.com.au/wp-json/jwt-auth/v1/token', {
+    // 1. Direct fetch call to the profiles me directory path
+    const response = await fetch('https://amcd.com.au', {
       method: 'GET',
       headers: { 
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     });
     
+    const rawText = await response.text();
+    console.log("SERVER PROFILE hand-shake response raw text string:", rawText);
+
     if (response.ok) {
-      userProfile = await response.json();
+      userProfile = JSON.parse(rawText);
     } else {
-      Astro.cookies.delete('wp_jwt_token', { path: '/' });
+      const errorData = JSON.parse(rawText).catch(() => null);
+      // Capture the exact rejection code provided by the WordPress engine
+      profileError = errorData?.message || `Server verification rejected with status code: ${response.status}`;
+      
+      // Only clear the cookie if it's an explicit authentication parameter failure
+      if (response.status === 401 || response.status === 403) {
+        Astro.cookies.delete('wp_jwt_token', { path: '/' });
+      }
     }
-  } catch (error) {
-    console.error("Profile fetch error:", error);
-    profileError = "Could not verify active session.";
+  } catch (error: any) {
+    console.error("Profile fetch error cascade caught:", error);
+    profileError = `Connection dropped during session verification: ${error.message}`;
   }
 }
 ---
