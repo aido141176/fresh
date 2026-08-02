@@ -10,7 +10,7 @@ let profileError = null;
 if (token) {
   try {
     // FIX: Append /wp-json/wp/v2/users/me onto your clean subdomain destination
-    const response = await fetch('https://amcd.com.au', {
+    const response = await fetch('https://api.amcd.com.au', {
       method: 'GET',
       headers: { 
         'Authorization': `Bearer ${token}`,
