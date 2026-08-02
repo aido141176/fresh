@@ -13,11 +13,8 @@ import '../../style/global.css';
   <title>User Accounts Authentication</title>
   <script is:inline>
     const token = localStorage.getItem('wp_session_token');
-    if (!token) {
+    if (token) {
       // Instantly eject logged-out users before the HTML body paints to the screen
-      window.location.href = 'https://fresh-sand-zeta.vercel.app/users';
-    }else{
-      // Redirect logged-in users to the dashboard
       window.location.href = 'https://fresh-sand-zeta.vercel.app/users/dashboard';
     }
   </script>
