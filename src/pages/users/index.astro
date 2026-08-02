@@ -7,7 +7,6 @@ let profileError = null;
 
 if (token) {
   try {
-    // Target the specific user endpoint, passing the Bearer token in headers
     const response = await fetch('https://amcd.com.au', {
       method: 'GET',
       headers: { 
@@ -19,7 +18,6 @@ if (token) {
     if (response.ok) {
       userProfile = await response.json();
     } else {
-      // If WordPress says the token is invalid, clean up the cookie
       Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
   } catch (error) {
@@ -45,14 +43,16 @@ if (token) {
       <p class="text-slate-400 text-sm mt-1">Authentication check panel via headless WordPress.</p>
     </div>
 
+    <!-- FIX: Wrapped inside a clean Astro Fragment wrapper to prevent layout parsing errors -->
     {profileError ? (
-      <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
-        <strong>Status Notice:</strong> {profileError}
-      </div>
+      <>
+        <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
+          <strong>Status Notice:</strong> {profileError}
+        </div>
+      </>
     ) : null}
 
     {userProfile ? (
-      <!-- Authenticated UI View Layout Frame -->
       <div class="space-y-4">
         <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
           <p class="text-emerald-400 font-medium text-sm">✓ Connected Successfully</p>
@@ -69,7 +69,6 @@ if (token) {
         </button>
       </div>
     ) : (
-      <!-- Empty Input Form Block -->
       <div class="space-y-4">
         <div id="error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-medium text-red-400"></div>
 
@@ -119,7 +118,7 @@ if (token) {
             const data = await res.json();
 
             if (res.ok && data.success) {
-              window.location.reload(); // Reload to read the newly set cookie session
+              window.location.reload();
             } else {
               if (errorAlert) {
                 errorAlert.textContent = data.error || 'Authentication error occurred.';
