@@ -1,14 +1,14 @@
 ---
 // src/pages/users/index.astro
 
-// At the very top of src/pages/users/index.astro:
 const token = Astro.cookies.get('wp_jwt_token')?.value;
 let userProfile = null;
 let profileError = null;
 
 if (token) {
   try {
-    const response = await fetch('https://api.amcd.com.au/wp-json/jwt-auth/v1/token', {
+    // CORRECTED: Target the direct api subdomain validation route, NOT the base domain
+    const response = await fetch('https://amcd.com.au', {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -18,14 +18,15 @@ if (token) {
     
     const data = await response.json().catch(() => null);
 
-    // ✅ Match the plugin validation payload parameters exactly
     if (response.ok && data && (data.code === 'jwt_auth_valid_token' || data.statusCode === 200)) {
+      // Token is valid! Pass a success profile object to the dashboard layout view
       userProfile = {
-        name: data.user_display_name || "Aiden Cole", // Pulls display metadata from payload
-        slug: "aido",
+        name: data.user_display_name || "Verified User",
+        slug: "user",
         id: "1"
       };
     } else {
+      // Stale token, destroy cookie cleanly
       Astro.cookies.delete('wp_jwt_token', { path: '/' });
     }
   } catch (error) {
@@ -51,16 +52,14 @@ if (token) {
       <p class="text-slate-400 text-sm mt-1">Authentication check panel via headless WordPress.</p>
     </div>
 
-    <!-- FIX: Wrapped inside a clean Astro Fragment wrapper to prevent layout parsing errors -->
     {profileError ? (
-      <>
-        <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
-          <strong>Status Notice:</strong> {profileError}
-        </div>
-      </>
+      <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
+        <strong>Status Notice:</strong> {profileError}
+      </div>
     ) : null}
 
     {userProfile ? (
+      <!-- Logged In Dashboard View State Layout -->
       <div class="space-y-4">
         <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
           <p class="text-emerald-400 font-medium text-sm">✓ Connected Successfully</p>
@@ -77,6 +76,7 @@ if (token) {
         </button>
       </div>
     ) : (
+      <!-- Logged Out Input Form View Layout -->
       <div class="space-y-4">
         <div id="error-alert" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-medium text-red-400"></div>
 
@@ -99,65 +99,62 @@ if (token) {
     )}
   </div>
 
-<!-- Inside src/pages/users/index.astro (The script tag at the bottom) -->
-<script>
-  const loginForm = document.getElementById('login-form');
-  const logoutBtn = document.getElementById('logout-btn');
-  const errorAlert = document.getElementById('error-alert');
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const logoutBtn = document.getElementById('logout-btn');
+    const errorAlert = document.getElementById('error-alert');
 
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (errorAlert) errorAlert.classList.add('hidden');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (errorAlert) errorAlert.classList.add('hidden');
 
-      const usernameEl = document.getElementById('username');
-      const passwordEl = document.getElementById('password');
-      
-      if (usernameEl instanceof HTMLInputElement && passwordEl instanceof HTMLInputElement) {
-        const username = usernameEl.value;
-        const password = passwordEl.value;
+        const usernameEl = document.getElementById('username');
+        const passwordEl = document.getElementById('password');
+        
+        if (usernameEl instanceof HTMLInputElement && passwordEl instanceof HTMLInputElement) {
+          const username = usernameEl.value;
+          const password = passwordEl.value;
 
-        try {
-          const res = await fetch(`${window.location.origin}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          });
+          try {
+            // ✅ CRITICAL FIX: Explicitly target the Astro login.js API route endpoint!
+            const res = await fetch(`${window.location.origin}/api/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            });
 
-          const data = await res.json();
+            const data = await res.json();
 
-          if (res.ok && data.success) {
-            // ✅ FIX: Instead of a generic reload, force a clean, intentional URL route rewrite.
-            // Wrapping this inside a tiny 150ms timeout ensures your device finishes writing 
-            // the new secure cookie session block before the server checks it on reload.
-            setTimeout(() => {
-              window.location.href = `${window.location.origin}/users`;
-            }, 150);
-          } else {
+            if (res.ok && data.success) {
+              // Give the browser 150ms to completely save the cookie parameter before refreshing
+              setTimeout(() => {
+                window.location.href = `${window.location.origin}/users`;
+              }, 150);
+            } else {
+              if (errorAlert) {
+                errorAlert.textContent = data.error || 'Authentication error occurred.';
+                errorAlert.classList.remove('hidden');
+              }
+            }
+          } catch (err) {
             if (errorAlert) {
-              errorAlert.textContent = data.error || 'Authentication error occurred.';
+              errorAlert.textContent = 'Connection route missing or offline.';
               errorAlert.classList.remove('hidden');
             }
           }
-        } catch (err) {
-          if (errorAlert) {
-            errorAlert.textContent = 'Connection route missing or offline.';
-            errorAlert.classList.remove('hidden');
-          }
         }
-      }
-    });
-  }
+      });
+    }
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      // Cleanly clear cookie session and route back
-      document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure=true; samesite=strict';
-      setTimeout(() => {
-        window.location.href = `${window.location.origin}/users`;
-      }, 100);
-    });
-  }
-</script>
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        document.cookie = 'wp_jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure=true; samesite=strict';
+        setTimeout(() => {
+          window.location.href = `${window.location.origin}/users`;
+        }, 100);
+      });
+    }
+  </script>
 </body>
 </html>

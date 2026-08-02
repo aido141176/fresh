@@ -9,27 +9,26 @@ export const POST = async ({ request, cookies }) => {
 
     const { username, password } = body;
 
-    // 1. Exact options configuration matching your successful JWT dashboard test
+    // Options mapping matching your successful browser dashboard link test exactly
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     };
 
-    // 2. Target the exact endpoint that gave you the successful token response
-    const wpTargetEndpoint = 'https://api.amcd.com.au/wp-json/jwt-auth/v1/token';
+    // Target the specific token endpoint on your active api subdomain
+    const wpTargetEndpoint = 'https://amcd.com.au';
 
     const wpResponse = await fetch(wpTargetEndpoint, options);
     const data = await wpResponse.json().catch(() => null);
 
-    // 3. Handle unsuccessful credentials or server rejections
     if (!wpResponse.ok || !data || !data.token) {
       return new Response(JSON.stringify({ 
         error: data?.message || 'Authentication rejected by WordPress.' 
       }), { status: wpResponse.status || 401 });
     }
 
-    // 4. Save the valid token string into an HTTP-only browser cookie
+    // Save the valid token string into an HTTP-only browser cookie
     cookies.set('wp_jwt_token', data.token, {
       path: '/',
       httpOnly: true,
@@ -38,7 +37,6 @@ export const POST = async ({ request, cookies }) => {
       maxAge: 60 * 60 * 24 * 7 // Logged in for 7 days
     });
 
-    // 5. Send back a clean success payload to trigger the frontend page refresh
     return new Response(JSON.stringify({ 
       success: true, 
       user: data.user_display_name 
