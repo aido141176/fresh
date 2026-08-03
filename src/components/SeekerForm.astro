@@ -147,14 +147,16 @@ import locationData from '../data/bali.json';
     radio.addEventListener('change', (e) => {
       const selectedRegency = (e.target as HTMLInputElement).value;
       
-      districtSelect.innerHTML = '<option value="">Select District</option>';
-      villageSelect.innerHTML = '<option value="">Select District first</option>';
-      districtSelect.disabled = true;
-      villageSelect.disabled = true;
+      if (districtSelect && villageSelect) {
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        villageSelect.innerHTML = '<option value="">Select District first</option>';
+        districtSelect.disabled = true;
+        villageSelect.disabled = true;
+      }
       if (checkboxGrid) checkboxGrid.innerHTML = '<span class="text-xs text-slate-500 italic">Select a village to reveal hyper-local neighborhoods...</span>';
 
       activeRegencyObj = (window as any).BALI_LOCATIONS.find((r: any) => r.regency_name === selectedRegency);
-      if (activeRegencyObj?.districts) {
+      if (activeRegencyObj?.districts && districtSelect) {
         activeRegencyObj.districts.forEach((d: any) => {
           const opt = document.createElement('option');
           opt.value = d.district_name;
@@ -171,22 +173,18 @@ import locationData from '../data/bali.json';
     districtSelect.addEventListener('change', (e) => {
       const selectedDistrict = (e.target as HTMLSelectElement).value;
       
-      villageSelect.innerHTML = '<option value="">Select Village</option>';
-      villageSelect.disabled = true;
+      if (villageSelect) {
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
+        villageSelect.disabled = true;
+      }
       if (checkboxGrid) checkboxGrid.innerHTML = '<span class="text-xs text-slate-500 italic">Select a village to reveal hyper-local neighborhoods...</span>';
 
       if (!selectedDistrict) return;
 
       activeDistrictObj = activeRegencyObj?.districts.find((d: any) => d.district_name === selectedDistrict);
-      if (activeDistrictObj?.villages) {
+      if (activeDistrictObj?.villages && villageSelect) {
         activeDistrictObj.villages.forEach((v: any) => {
           const opt = document.createElement('option');
           opt.value = v.village_name;
           opt.textContent = v.village_name;
-          villageSelect.appendChild(opt);
-        });
-        villageSelect.disabled = false;
-      }
-    });
-  }
-
+villageSelect.appendChild(opt);});villageSelect.disabled = false;}});}// Village Change Handler (Injects multi-select Checkboxes)if (villageSelect) {villageSelect.addEventListener('change', (e) => {const selectedVillage = (e.target as HTMLSelectElement).value;if (!checkboxGrid) return;checkboxGrid.innerHTML = '';if (!selectedVillage) {checkboxGrid.innerHTML = 'Select a village to reveal hyper-local neighborhoods...';return;}activeVillageObj = activeDistrictObj?.villages.find((v: any) => v.village_name === selectedVillage);if (activeVillageObj && activeVillageObj.neighborhoods && activeVillageObj.neighborhoods.length > 0) {checkboxGrid.className = "p-4 bg-slate-900 border border-slate-700 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm";activeVillageObj.neighborhoods.forEach((nh: string) => {const label = document.createElement('label');label.className = "flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-all text-xs font-medium select-none";const checkbox = document.createElement('input');checkbox.type = "checkbox";checkbox.name = "neighborhoods";checkbox.value = nh;checkbox.className = "w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2";const span = document.createElement('span');span.className = "text-slate-300";span.textContent = nh;label.appendChild(checkbox);label.appendChild(span);checkboxGrid.appendChild(label);});} else {checkboxGrid.className = "p-4 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-500 italic";checkboxGrid.textContent = "No hyper-local neighborhood sub-units registered for this specific village.";}});}// 3. Media Upload REST Handler (Handshakes directly with your working subdomain API)const fileInput = document.getElementById('profile-image-file');const avatarPreview = document.getElementById('avatar-preview');const mediaIdInput = document.getElementById('wp-media-id') as HTMLInputElement;const formAlert = document.getElementById('form-alert');const token = localStorage.getItem('wp_session_token');const nameData = localStorage.getItem('wp_user_name');if (fileInput) {fileInput.addEventListener('change', async (e) => {// ✅ FIX: Fixed target file extraction syntax property mapping error to fulfill Vite builds safelyconst inputEl = e.target as HTMLInputElement;const file = inputEl.files ? inputEl.files[0] : null;if (!file || !avatarPreview || !mediaIdInput || !formAlert) return;formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-400";formAlert.textContent = "Uploading asset binary package safely to WordPress media pipeline...";formAlert.classList.remove('hidden');const formData = new FormData();formData.append('file', file);formData.append('title', Seeker Avatar - ${nameData});try {const mediaRes = await fetch('amcd.com.au', {method: 'POST',headers: {'Authorization': Bearer ${token}},body: formData});const mediaData = await mediaRes.json();if (mediaRes.ok && mediaData.id) {mediaIdInput.value = mediaData.id;avatarPreview.innerHTML = <img src="${mediaData.source_url}" class="w-full h-full object-cover" />;formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";formAlert.textContent = "✓ Profile image compiled and optimized successfully.";} else {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = Media conversion dropped: ${mediaData.message || 'Verification fault'};}} catch (err) {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = "Failed connecting to media conversion buffer endpoints.";}});}// 4. Final Form Submission Package Streamerconst seekerForm = document.getElementById('seeker-form');const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;if (seekerForm) {seekerForm.addEventListener('submit', async (e) => {e.preventDefault();if (!formAlert || !submitBtn || !budgetInput) return;submitBtn.disabled = true;submitBtn.textContent = "Saving Profile...";const checkedBoxes = document.querySelectorAll('input[name="neighborhoods"]:checked');const selectedNHs: string[] = [];checkedBoxes.forEach((cb) => {selectedNHs.push((cb as HTMLInputElement).value);});const isPublished = (document.getElementById('publish-profile') as HTMLInputElement).checked;const mediaId = parseInt(mediaIdInput.value) || '';const budgetValue = parseInt(budgetInput.value) || 0;let selectedRegency = '';const regRadioChecked = document.querySelector('input[name="regency"]:checked');if (regRadioChecked) selectedRegency = (regRadioChecked as HTMLInputElement).value;const updatePayload = {acf: {publish_profile_to_seekers: isPublished,profile_image: mediaId,target_budget: budgetValue,preferences: {preferred_regency: selectedRegency,preferred_district: districtSelect.value,preferred_village: villageSelect.value,preferred_neighborhoods: selectedNHs}}};try {const saveRes = await fetch('amcd.com.au', {method: 'POST',headers: {'Content-Type': 'application/json','Authorization': Bearer ${token}},body: JSON.stringify(updatePayload)});const saveResult = await saveRes.json();if (saveRes.ok) {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";formAlert.textContent = "✓ Seeker profile specifications locked and saved successfully.";window.scrollTo({ top: 0, behavior: 'smooth' });} else {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = Update rejected: ${saveResult.message || 'Validation error'};}} catch (err) {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = "Server synchronization drop. Connection timed out.";} finally {submitBtn.disabled = false;submitBtn.textContent = "Save Profile Settings";}});}
