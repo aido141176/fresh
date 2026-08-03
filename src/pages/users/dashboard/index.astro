@@ -12,12 +12,13 @@
 
   <!-- 1. STRICT ROUTE GUARD: Runs instantly in the browser header to prevent flash of content -->
   <script is:inline>
-    const token = localStorage.getItem('wp_session_token');
-    if (!token) {
-      // Instantly eject logged-out users before the HTML body paints to the screen
-      window.location.href = 'https://fresh-sand-zeta.vercel.app/users';
+    // Strict Route Guard: Eject logged-out users instantly before layout renders
+    if (!localStorage.getItem('wp_session_token')) {
+      window.location.href = '/users';
     }
   </script>
+
+  
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col items-center justify-center p-4">
 
