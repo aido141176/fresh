@@ -297,15 +297,57 @@ if (fileInput !== null) {
 }
 
     
-    const seekerForm = document.getElementById('seeker-form');const submitBtn = document.getElementById('submit-btn');if (seekerForm !== null) {seekerForm.addEventListener('submit', async (e) => {e.preventDefault();if (formAlert === null || !(submitBtn instanceof HTMLButtonElement) || !(budgetInput instanceof HTMLInputElement)) return;submitBtn.disabled = true;submitBtn.textContent = "Saving Profile...";const checkedBoxes = document.querySelectorAll('input[name="neighborhoods"]:checked');const selectedNHs = [];checkedBoxes.forEach((cb) => {if (cb instanceof HTMLInputElement) {selectedNHs.push(cb.value);}});const publishEl = document.getElementById('publish-profile');const isPublished = publishEl instanceof HTMLInputElement ? publishEl.checked : false;const mediaId = mediaIdInput instanceof HTMLInputElement ? parseInt(mediaIdInput.value) || '' : '';const budgetValue = parseInt(budgetInput.value) || 0;let selectedRegency = '';const regRadioChecked = document.querySelector('input[name="regency"]:checked');if (regRadioChecked instanceof HTMLInputElement) {selectedRegency = regRadioChecked.value;}let selectedDistrict = '';const distRadioChecked = document.querySelector('input[name="district"]:checked');if (distRadioChecked instanceof HTMLInputElement) {selectedDistrict = distRadioChecked.value;}let selectedVillage = '';const vilRadioChecked = document.querySelector('input[name="village"]:checked');if (vilRadioChecked instanceof HTMLInputElement) {selectedVillage = vilRadioChecked.value;}const updatePayload = {acf: {publish_profile_to_seekers: isPublished,profile_image: mediaId,target_budget: budgetValue,preferences: {preferred_regency: selectedRegency,preferred_district: selectedDistrict,preferred_village: selectedVillage,preferred_neighborhoods: selectedNHs}}};try {
+    const seekerForm = document.getElementById('seeker-form');const submitBtn = document.getElementById('submit-btn');if (seekerForm !== null) {seekerForm.addEventListener('submit', async (e) => {e.preventDefault();if (formAlert === null || !(submitBtn instanceof HTMLButtonElement) || !(budgetInput instanceof HTMLInputElement)) return;submitBtn.disabled = true;submitBtn.textContent = "Saving Profile...";const checkedBoxes = document.querySelectorAll('input[name="neighborhoods"]:checked');const selectedNHs = [];checkedBoxes.forEach((cb) => {if (cb instanceof HTMLInputElement) {selectedNHs.push(cb.value);}});const publishEl = document.getElementById('publish-profile');const isPublished = publishEl instanceof HTMLInputElement ? publishEl.checked : false;const mediaId = mediaIdInput instanceof HTMLInputElement ? parseInt(mediaIdInput.value) || '' : '';const budgetValue = parseInt(budgetInput.value) || 0;let selectedRegency = '';const regRadioChecked = document.querySelector('input[name="regency"]:checked');if (regRadioChecked instanceof HTMLInputElement) {selectedRegency = regRadioChecked.value;}let selectedDistrict = '';const distRadioChecked = document.querySelector('input[name="district"]:checked');if (distRadioChecked instanceof HTMLInputElement) {selectedDistrict = distRadioChecked.value;}let selectedVillage = '';const vilRadioChecked = document.querySelector('input[name="village"]:checked');if (vilRadioChecked instanceof HTMLInputElement) {selectedVillage = vilRadioChecked.value;}
+    
+        // Pull logged-in parameters from localStorage to fulfill the REST API's strict safety checks
+      const storedEmail = localStorage.getItem('wp_user_email') || '';
+      const storedName = localStorage.getItem('wp_user_name') || '';
+
+      const updatePayload = {
+        // 1. Core identification properties required by the master /users loop
+        username: storedName,
+        email: storedEmail,
         
-        const saveRes = await fetch('https://amcd.com.au', {
-        method: 'POST',
-        headers: {
+        // 2. Your custom flatmate targeting parameters
+        acf: {
+          publish_profile_to_seekers: isPublished,
+          profile_image: mediaId,
+          target_budget: budgetValue,
+          preferences: {
+            preferred_regency: selectedRegency,
+            preferred_district: selectedDistrict,
+            preferred_village: selectedVillage,
+            preferred_neighborhoods: selectedNHs
+          }
+        }
+      };
+
+      try {
+        // ✅ CORRECT ENDPOINT: Targets your live WordPress REST engine API loop directly
+        const saveRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/users/me', {
+          method: 'POST',
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': "Bearer " + token
-        },
-        body: JSON.stringify(updatePayload)
+          },
+          body: JSON.stringify(updatePayload)
         });
-        
-        const saveResult = await saveRes.json();if (saveRes.ok) {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";formAlert.textContent = "✓ Seeker profile specifications locked and saved successfully.";window.scrollTo({ top: 0, behavior: 'smooth' });} else {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = "Update rejected: " + (saveResult.message || "Validation error");}} catch (err) {formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";formAlert.textContent = "Server synchronization dropped. Connection timed out.";} finally {submitBtn.disabled = false;submitBtn.textContent = "Save Profile Settings";}});}
+
+        const saveResult = await saveRes.json();
+
+        if (saveRes.ok) {
+          formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";
+          formAlert.textContent = "✓ Seeker profile specifications locked and saved successfully.";
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";
+          formAlert.textContent = "Update rejected: " + (saveResult.message || "Validation error");
+        }
+      } catch (err) {
+        formAlert.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";
+        formAlert.textContent = "Server synchronization dropped. Connection timed out.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Profile Settings";
+      }
+    });}
