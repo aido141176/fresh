@@ -302,11 +302,12 @@ if (fileInput !== null) {
         // Pull logged-in parameters from localStorage to fulfill the REST API's strict safety checks
       const storedEmail = localStorage.getItem('wp_user_email') || '';
       const storedName = localStorage.getItem('wp_user_name') || '';
-
+      const storedUserId = localStorage.getItem('wp_user_id') || '1';
       const updatePayload = {
         // 1. Core identification properties required by the master /users loop
         username: storedName,
         email: storedEmail,
+        id: storedUserId,
         
         // 2. Your custom flatmate targeting parameters
         acf: {
@@ -322,10 +323,14 @@ if (fileInput !== null) {
         }
       };
 
-      try {
-        // ✅ CORRECT ENDPOINT: Targets your live WordPress REST engine API loop directly
-        const saveRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/users/me', {
-          method: 'POST',
+       try {
+        // ✅ DYNAMIC PATH MATRIX: Targets your exact user entry row link directly
+        // Example output path: https://amcd.com.au
+        const targetUserUrl = 'https://amcd.com.au' + storedUserId;
+        console.log("Pushing payload parameters cleanly to target path row: " + targetUserUrl);
+
+        const saveRes = await fetch(targetUserUrl, {
+          method: 'POST', // WordPress treats POST requests to a specific User ID as an UPDATE action
           headers: {
             'Content-Type': 'application/json',
             'Authorization': "Bearer " + token
