@@ -267,7 +267,7 @@ if (fileInput !== null) {
       formAlert.classList.remove('hidden');
 
       try {
-        const mediaRes = await fetch('https://amcd.com.au', {
+        const mediaRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/media', {
           method: 'POST',
           headers: { 
             'Authorization': "Bearer " + token,
