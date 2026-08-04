@@ -303,10 +303,8 @@ if (fileInput !== null) {
       const storedEmail = localStorage.getItem('wp_user_email') || '';
       const storedName = localStorage.getItem('wp_user_name') || '';
       const storedUserId = localStorage.getItem('wp_user_id') || '1';
-       const updatePayload = {
-        /* ✅ REMOVED the redundant body ID parameter row from this block */
-        username: storedName,
-        email: storedEmail,
+      // Gather only your custom flatmate targeting parameters
+      const updatePayload = {
         acf: {
           publish_profile_to_seekers: isPublished,
           profile_image: mediaId,
@@ -319,6 +317,7 @@ if (fileInput !== null) {
           }
         }
       };
+
 
 
        try {
