@@ -303,13 +303,10 @@ if (fileInput !== null) {
       const storedEmail = localStorage.getItem('wp_user_email') || '';
       const storedName = localStorage.getItem('wp_user_name') || '';
       const storedUserId = localStorage.getItem('wp_user_id') || '1';
-      const updatePayload = {
-        // 1. Core identification properties required by the master /users loop
+       const updatePayload = {
+        /* ✅ REMOVED the redundant body ID parameter row from this block */
         username: storedName,
         email: storedEmail,
-        id: storedUserId,
-        
-        // 2. Your custom flatmate targeting parameters
         acf: {
           publish_profile_to_seekers: isPublished,
           profile_image: mediaId,
@@ -323,10 +320,11 @@ if (fileInput !== null) {
         }
       };
 
+
        try {
         // ✅ DYNAMIC PATH MATRIX: Targets your exact user entry row link directly
         // Example output path: https://amcd.com.au
-        const targetUserUrl = 'https://amcd.com.au' + storedUserId;
+        const targetUserUrl = 'https://api.amcd.com.au/wp-json/wp/v2/users/' + storedUserId;
         console.log("Pushing payload parameters cleanly to target path row: " + targetUserUrl);
 
         const saveRes = await fetch(targetUserUrl, {
