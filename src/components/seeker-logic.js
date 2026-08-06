@@ -304,21 +304,19 @@ if (fileInput !== null) {
       const storedName = localStorage.getItem('wp_user_name') || '';
       const storedUserId = localStorage.getItem('wp_user_id') || '1';
       // Gather only your custom flatmate targeting parameters
-      // Gather only your flat custom flatmate targeting parameters
       const updatePayload = {
         acf: {
           publish_profile_to_seekers: isPublished,
           profile_image: mediaId,
           target_budget: budgetValue,
-          about_me: "", // Placeholder slot if you add an input later
-          // ✅ FIX: Flatten your individual location preferences fields so they write flawlessly
-          preferred_regency: selectedRegency,
-          preferred_district: selectedDistrict,
-          preferred_village: selectedVillage,
-          preferred_neighborhoods: selectedNHs
+          preferences: {
+            preferred_regency: selectedRegency,
+            preferred_district: selectedDistrict,
+            preferred_village: selectedVillage,
+            preferred_neighborhoods: selectedNHs
+          }
         }
       };
-
 
 
 
