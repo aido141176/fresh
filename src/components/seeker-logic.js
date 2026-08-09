@@ -304,6 +304,7 @@ if (fileInput !== null) {
       const storedName = localStorage.getItem('wp_user_name') || '';
       const storedUserId = localStorage.getItem('wp_user_id') || '1';
       // Gather only your custom flatmate targeting parameters
+      // Gather only your flat custom flatmate targeting parameters
       const updatePayload = {
         acf: {
           publish_profile_to_seekers: isPublished,
@@ -317,6 +318,7 @@ if (fileInput !== null) {
           }
         }
       };
+
 
 
 

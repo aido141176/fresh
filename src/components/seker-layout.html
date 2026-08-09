@@ -1,0 +1,138 @@
+<div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6">
+  <div class="border-b border-slate-700 pb-4 mb-6">
+    <h2 class="text-xl font-bold text-white">Create Seeker Profile Matcher</h2>
+    <p class="text-slate-400 text-xs mt-1">Configure your budget constraints and target living arrangements in Bali.</p>
+  </div>
+
+  <div id="form-alert" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+  <div class="mb-6 border-b border-slate-700">
+    <nav class="flex space-x-4" aria-label="Tabs">
+      <button type="button" id="tab-btn-popular" class="border-b-2 border-indigo-500 text-indigo-400 px-1 pb-4 text-sm font-bold tracking-wide focus:outline-none transition-all cursor-pointer">
+        📍 Popular Villages
+      </button>
+      <button type="button" id="tab-btn-all" class="border-b-2 border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600 px-1 pb-4 text-sm font-bold tracking-wide focus:outline-none transition-all cursor-pointer">
+        🗺️ All Bali Villages
+      </button>
+    </nav>
+  </div>
+
+  <form id="seeker-form" class="space-y-6">
+    
+    <div class="flex items-start gap-3 bg-slate-900/40 border border-slate-700 p-4 rounded-xl">
+      <input type="checkbox" id="publish-profile" name="publish_profile" class="w-5 h-5 mt-0.5 text-indigo-600 bg-slate-800 border-slate-700 rounded focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
+      <div>
+        <label for="publish-profile" class="text-sm font-semibold text-white cursor-pointer select-none">Publish Profile to Seekers Feed</label>
+        <p class="text-slate-400 text-xs mt-0.5">Toggle this setting ON to allow matching landlords and potential flatmates to discover your profile publicly.</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-3">
+      <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Profile Photo Upload</label>
+      <div class="flex items-center gap-4">
+        <div id="avatar-preview" class="w-16 h-16 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 text-xs text-center font-semibold overflow-hidden">
+          No Image
+        </div>
+        <div class="flex-1">
+          <input type="file" id="profile-image-file" accept="image/png, image/jpeg, image/jpg" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white file:cursor-pointer hover:file:bg-indigo-500 transition-all" />
+          <p class="text-[11px] text-slate-500 mt-1.5">Supports PNG or JPG formats.</p>
+        </div>
+      </div>
+      <input type="hidden" id="wp-media-id" name="profile_image_id" value="" />
+    </div>
+
+    <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-5">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2">Target Housing Location Preferences</h3>
+
+      <div id="panel-popular-villages" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-3">Select Popular Village:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="CANGGU" checked />
+              <span class="text-slate-200">Canggu</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="PERERENAN" />
+              <span class="text-slate-200">Pererenan</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="UBUD" />
+              <span class="text-slate-200">Ubud</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="PECATU" />
+              <span class="text-slate-200">Uluwatu / Pecatu</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="SEMINYAK" />
+              <span class="text-slate-200">Seminyak</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="SANUR KAUH" />
+              <span class="text-slate-200">Sanur</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="KEROBOKAN" />
+              <span class="text-slate-200">Kerobokan</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+              <input type="radio" name="popular_village_select" value="JIMBARAN" />
+              <span class="text-slate-200">Jimbaran</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-all-bali" class="hidden space-y-5">
+        <div class="p-4 bg-slate-900/40 border border-slate-700 rounded-xl space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-indigo-400">Search Box Auto-Complete Assister</label>
+            <p class="text-slate-400 text-[11px] mt-0.5">Type any Bali location name below to fetch parent data paths automatically.</p>
+          </div>
+          <div class="relative">
+            <input type="text" id="geo-search-input" placeholder="e.g. Canggu, Berawa, Ubud, Bingin..." class="w-full h-11 pl-4 pr-12 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" />
+            <div id="search-status-icon" class="absolute inset-y-0 right-0 flex items-center pr-4 hidden">
+              <span class="text-emerald-400 font-bold text-base">✓</span>
+            </div>
+          </div>
+          <div id="search-results-box" class="hidden max-h-40 overflow-y-auto bg-slate-800 border border-slate-700 rounded-xl divide-y divide-slate-700/50 shadow-xl text-xs"></div>
+          <div id="injector-confirmation" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-800 border border-emerald-500/20 p-2.5 rounded-lg text-xs">
+            <p id="injector-text" class="text-slate-300"></p>
+            <button type="button" id="inject-location-btn" class="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-md transition-all">Enter Location Data</button>
+          </div>
+        </div>
+
+        <div id="regency-radio-container">
+          <label class="block text-xs font-semibold text-slate-300 mb-2">1. Preferred Regency</label>
+          <div id="regency-inputs-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">2. Preferred District</label>
+          <div id="district-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic">Select a Regency to see districts...</div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">3. Preferred Village / Ward</label>
+          <div id="village-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic max-h-40 overflow-y-auto">Select a District to see villages...</div>
+        </div>
+      </div>
+
+      <div>
+        <label id="neighborhood-section-title" class="block text-xs font-semibold text-slate-300 mb-3">
+          Targeted Specific Neighborhoods / Banjars in Canggu
+        </label>
+        <div id="neighborhood-checkbox-grid" class="p-4 bg-slate-900 border border-slate-700 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-slate-500">
+          Loading default neighborhood selections...
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-3">
+      <label for="budget-input" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Maximum Monthly Target Budget (IDR)</label>
+      <div class="relative rounded-xl shadow-sm">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+          <span class="text-slate-400 text-sm font-semibold">Rp</span>
+        </div>
+        <input type="number" id="budget-input" required min="100000" step="50000" placeholder="e.g. 5000000" class="w-full h-11 pl-11 pr-24 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-semibold" />
