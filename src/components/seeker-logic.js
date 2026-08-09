@@ -195,13 +195,6 @@ document.getElementsByName('popular_village').forEach(radio => {
   });
 });
 
-// default to Popular with Canggu selected
-activatePopularTab();
-const defaultPopular = document.querySelector("input[name='popular_village'][value='Canggu']");
-if (defaultPopular instanceof HTMLInputElement) {
-  defaultPopular.checked = true;
-  selectPopularVillageByName('Canggu');
-}
 
 const geoInputEl = document.getElementById('geo-search-input');
 const resultsBox = document.getElementById('search-results-box');
@@ -247,6 +240,14 @@ if (locationsList) {
       });
     }
   });
+}
+
+// default to Popular with Canggu selected (run after searchIndex is built)
+activatePopularTab();
+const defaultPopular = document.querySelector("input[name='popular_village'][value='Canggu']");
+if (defaultPopular instanceof HTMLInputElement) {
+  defaultPopular.checked = true;
+  selectPopularVillageByName('Canggu');
 }
 
 if (geoInputEl instanceof HTMLInputElement && resultsBox !== null) {
@@ -300,7 +301,36 @@ if (injectBtn !== null && geoInputEl instanceof HTMLInputElement) {
     if (selectedMatchItem === null) return;
 
     const item = selectedMatchItem;
-const regRadio = document.querySelector("input[name='regency'][value='" + item.regency + "']");if (regRadio instanceof HTMLInputElement) {regRadio.checked = true;}renderDistricts(item.regency, item.district);renderVillages(item.district, item.village);if (item.type === 'neighborhood') {renderNeighborhoods(item.village, [item.name]);} else {renderNeighborhoods(item.village, []);}if (injectorConf !== null) injectorConf.classList.add('hidden');if (statusIcon !== null) statusIcon.classList.add('hidden');geoInputEl.value = '';checkboxGrid?.scrollIntoView({ behavior: 'smooth', block: 'center' });});}
+    const regRadio = document.querySelector("input[name='regency'][value='" + item.regency + "']");
+    if (regRadio instanceof HTMLInputElement) { regRadio.checked = true; }
+
+    // Ensure districts are rendered for the regency (and optionally auto-select the district)
+    renderDistricts(item.regency, item.district);
+
+    // Handle different match types
+    if (item.type === 'district') {
+      // Show villages in this district (no village auto-selected)
+      renderVillages(item.district, '');
+      if (neighborhoodsLabelEl) neighborhoodsLabelEl.textContent = '4. Targeted Specific Neighborhoods / Banjars';
+    } else if (item.type === 'village') {
+      // Auto-select the village and auto-check all its neighborhoods
+      renderVillages(item.district, item.village);
+      const nhs = searchIndex.filter(it => it.type === 'neighborhood' && it.village === item.village).map(x => x.name);
+      renderNeighborhoods(item.village, nhs);
+      if (neighborhoodsLabelEl) neighborhoodsLabelEl.textContent = '4. Targeted Specific Neighborhoods / Banjars in ' + item.village;
+    } else if (item.type === 'neighborhood') {
+      // Render and auto-check the single neighborhood
+      renderVillages(item.district, item.village);
+      renderNeighborhoods(item.village, [item.name]);
+      if (neighborhoodsLabelEl) neighborhoodsLabelEl.textContent = '4. Targeted Specific Neighborhoods / Banjars in ' + item.village;
+    }
+
+    if (injectorConf !== null) injectorConf.classList.add('hidden');
+    if (statusIcon !== null) statusIcon.classList.add('hidden');
+    geoInputEl.value = '';
+    checkboxGrid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
 
 const fileInput = document.getElementById('profile-image-file');
 const avatarPreview = document.getElementById('avatar-preview');
