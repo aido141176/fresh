@@ -149,6 +149,60 @@ document.getElementsByName('regency').forEach(radio => {
   });
 });
 
+// Tab and Popular Villages controls
+const reverseLookupBoxEl = document.getElementById('reverse-lookup-box');
+const allVillageSelectorsEl = document.getElementById('all-village-selectors');
+const neighborhoodsLabelEl = document.getElementById('neighborhoods-label');
+const tabPopularBtn = document.getElementById('tab-popular-btn');
+const tabAllBtn = document.getElementById('tab-all-btn');
+
+function activatePopularTab() {
+  if (reverseLookupBoxEl) reverseLookupBoxEl.classList.add('hidden');
+  if (allVillageSelectorsEl) allVillageSelectorsEl.classList.add('hidden');
+  if (tabPopularBtn) { tabPopularBtn.classList.add('bg-indigo-600'); tabPopularBtn.classList.remove('bg-slate-800'); tabPopularBtn.classList.remove('text-slate-300'); tabPopularBtn.classList.add('text-white'); }
+  if (tabAllBtn) { tabAllBtn.classList.remove('bg-indigo-600'); tabAllBtn.classList.add('bg-slate-800'); tabAllBtn.classList.remove('text-white'); tabAllBtn.classList.add('text-slate-300'); }
+}
+
+function activateAllTab() {
+  if (reverseLookupBoxEl) reverseLookupBoxEl.classList.remove('hidden');
+  if (allVillageSelectorsEl) allVillageSelectorsEl.classList.remove('hidden');
+  if (tabAllBtn) { tabAllBtn.classList.add('bg-indigo-600'); tabAllBtn.classList.remove('bg-slate-800'); tabAllBtn.classList.add('text-white'); }
+  if (tabPopularBtn) { tabPopularBtn.classList.remove('bg-indigo-600'); tabPopularBtn.classList.add('bg-slate-800'); tabPopularBtn.classList.remove('text-white'); tabPopularBtn.classList.add('text-slate-300'); }
+}
+
+function selectPopularVillageByName(villageName) {
+  if (!villageName) return;
+  const item = searchIndex.find(i => i.type === 'village' && i.name === villageName);
+  if (!item) return;
+  const regRadio = document.querySelector("input[name='regency'][value='" + item.regency + "']");
+  if (regRadio instanceof HTMLInputElement) regRadio.checked = true;
+  renderDistricts(item.regency, item.district);
+  renderVillages(item.district, item.village);
+  const nhs = searchIndex.filter(it => it.type === 'neighborhood' && it.village === item.village).map(x => x.name);
+  renderNeighborhoods(item.village, nhs);
+  if (neighborhoodsLabelEl) neighborhoodsLabelEl.textContent = '4. Targeted Specific Neighborhoods / Banjars in ' + item.village;
+}
+
+if (tabPopularBtn) tabPopularBtn.addEventListener('click', () => { activatePopularTab(); });
+if (tabAllBtn) tabAllBtn.addEventListener('click', () => { activateAllTab(); });
+
+document.getElementsByName('popular_village').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t instanceof HTMLInputElement && t.checked) {
+      selectPopularVillageByName(t.value);
+    }
+  });
+});
+
+// default to Popular with Canggu selected
+activatePopularTab();
+const defaultPopular = document.querySelector("input[name='popular_village'][value='Canggu']");
+if (defaultPopular instanceof HTMLInputElement) {
+  defaultPopular.checked = true;
+  selectPopularVillageByName('Canggu');
+}
+
 const geoInputEl = document.getElementById('geo-search-input');
 const resultsBox = document.getElementById('search-results-box');
 const statusIcon = document.getElementById('search-status-icon');
