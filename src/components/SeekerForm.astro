@@ -12,10 +12,10 @@ import locationData from '../data/bali.json';
   <div id="form-alert" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
 
   <!-- Reverse Lookup Input Interface Box -->
-  <div class="mb-6 p-5 bg-slate-900/60 border border-indigo-500/20 rounded-xl space-y-4">
+  <div id="reverse-lookup-box" class="mb-6 p-5 bg-slate-900/60 border border-indigo-500/20 rounded-xl space-y-4">
     <div>
       <h3 class="text-sm font-bold text-indigo-400">Don't know the Regency or District?</h3>
-      <p class="text-slate-400 text-xs mt-0.5">Type any popular Bali village or neighborhood below to auto-fill the whole form instantly.</p>
+      <p class="text-slate-400 text-xs mt-0.5">Search for any Regency, District, Village or neighborhood in Bali</p>
     </div>
 
     <div class="relative">
@@ -61,35 +61,93 @@ import locationData from '../data/bali.json';
 
     <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-5">
       <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2">Target Housing Location Preferences</h3>
-      
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">1. Preferred Regency</label>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {locationData.map((reg) => (
-            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
-              <input type="radio" name="regency" value={reg.regency_name} class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
-              <span class="text-slate-200">{reg.regency_name}</span>
+
+      <!-- Tabs: Popular Villages / All Bali Villages -->
+      <div class="mt-3 flex items-center gap-3" role="tablist" aria-label="Village selection tabs">
+        <button id="tab-popular-btn" type="button" class="px-3 py-1 text-xs font-semibold rounded-md bg-indigo-600 text-white">Popular Villages</button>
+        <button id="tab-all-btn" type="button" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300">All Bali</button>
+      </div>
+
+      <!-- Popular panel (when active hides the search and the full selectors) -->
+      <div id="popular-panel" class="mt-4 space-y-3">
+        <div>
+          <label class="block text-sm font-semibold text-slate-300 mb-1">Select Popular Village:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Canggu" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" checked />
+              <span class="text-slate-200">Canggu</span>
             </label>
-          ))}
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Pererenan" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Pererenan</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Ubud" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Ubud</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Uluwatu/ Pecatu" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Uluwatu / Pecatu</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Seminyak" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Seminyak</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Sanur" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Sanur</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Kerobakan" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Kerobakan</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer text-xs font-medium select-none">
+              <input type="radio" name="popular_village" value="Jimbaran" class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700" />
+              <span class="text-slate-200">Jimbaran</span>
+            </label>
+          </div>
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">2. Preferred District</label>
-        <div id="district-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic">
-          Select a Regency to see districts...
+      <!-- All-villages panel: wrap the current regency/district/village selectors so they can be toggled on/off -->
+      <div id="all-village-selectors" class="mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-3">1. Preferred Regency</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {locationData.map((reg) => (
+              <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+                <input type="radio" name="regency" value={reg.regency_name} class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
+                <span class="text-slate-200">{reg.regency_name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-3">2. Preferred District</label>
+          <div id="district-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic">
+            Select a Regency to see districts...
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-3">3. Preferred Village / Ward</label>
+          <div id="village-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic max-h-48 overflow-y-auto">
+            Select a District to see villages...
+          </div>
         </div>
       </div>
 
+      <!-- Neighborhoods (always visible in both tabs) -->
       <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">3. Preferred Village / Ward</label>
-        <div id="village-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic max-h-48 overflow-y-auto">
-          Select a District to see villages...
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">4. Targeted Specific Neighborhoods / Banjars (Group Checkboxes)</label>
+        <label id="neighborhoods-label" class="block text-xs font-semibold text-slate-300 mb-3">4. Targeted Specific Neighborhoods / Banjars (Group Checkboxes)</label>
         <div id="neighborhood-checkbox-grid" class="p-4 bg-slate-900 border border-slate-700 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500 italic">
           Select a village to check off neighborhoods...
         </div>
