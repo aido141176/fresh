@@ -893,3 +893,191 @@ if (fileInput !== null) {
         }
       });
     }
+
+// Load existing user data from WordPress and populate the form for editing
+async function loadExistingUserData() {
+  console.debug('[Seeker] loadExistingUserData: start');
+  let storedUserId = localStorage.getItem('wp_user_id');
+  const token = localStorage.getItem('wp_session_token');
+  if (!token) {
+    console.debug('[Seeker] loadExistingUserData: no token in localStorage');
+    return;
+  }
+
+  // If user id not stored, try fallback /users/me
+  if (!storedUserId) {
+    console.debug('[Seeker] loadExistingUserData: wp_user_id not found, attempting /users/me');
+    try {
+      const meRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData && meData.id) {
+          storedUserId = String(meData.id);
+          console.debug('[Seeker] loadExistingUserData: found user id from /me =', storedUserId);
+          localStorage.setItem('wp_user_id', storedUserId);
+        }
+      }
+    } catch (err) {
+      console.warn('[Seeker] loadExistingUserData: /users/me lookup failed', err);
+    }
+  }
+
+  if (!storedUserId) {
+    console.debug('[Seeker] loadExistingUserData: no user id available after fallback');
+    return;
+  }
+
+  try {
+    console.debug('[Seeker] loadExistingUserData: fetching user', storedUserId);
+    const userRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/users/' + storedUserId, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!userRes.ok) {
+      console.warn('[Seeker] loadExistingUserData: user fetch not ok', userRes.status);
+      return;
+    }
+    const userData = await userRes.json();
+    const acf = (userData && userData.acf) ? userData.acf : {};
+
+    console.debug('[Seeker] loadExistingUserData: got acf', acf);
+
+    // Publish checkbox
+    const publishEl = document.getElementById('publish-profile');
+    if (publishEl instanceof HTMLInputElement && typeof acf.publish_profile_to_seekers !== 'undefined') {
+      publishEl.checked = Boolean(acf.publish_profile_to_seekers);
+    }
+
+    // Profile image
+    const mediaIdInput = document.getElementById('wp-media-id');
+    if (mediaIdInput instanceof HTMLInputElement && acf.profile_image) {
+      mediaIdInput.value = acf.profile_image;
+      // try to fetch media url if numeric id
+      if (typeof acf.profile_image === 'number' || /^[0-9]+$/.test(String(acf.profile_image))) {
+        try {
+          const mediaRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/media/' + acf.profile_image, { headers: { 'Authorization': 'Bearer ' + token } });
+          if (mediaRes.ok) {
+            const media = await mediaRes.json();
+            const avatarPreview = document.getElementById('avatar-preview');
+            if (avatarPreview instanceof HTMLElement && media && media.source_url) {
+              avatarPreview.innerHTML = "<img src='" + media.source_url + "' class='w-full h-full object-cover' />";
+            }
+          }
+        } catch (err) { console.warn('[Seeker] loadExistingUserData: failed to fetch media', err); }
+      }
+    }
+
+    // Move-in date, about, occupation, stay term
+    if (acf.move_in_date) {
+      const moveEl = document.getElementById('move-in-date');
+      if (moveEl instanceof HTMLInputElement) moveEl.value = acf.move_in_date;
+    }
+    if (acf.about_me) {
+      const aboutEl = document.getElementById('about-me');
+      if (aboutEl instanceof HTMLTextAreaElement) aboutEl.value = acf.about_me;
+    }
+    if (acf.occupation) {
+      const occEl = document.getElementById('occupation');
+      if (occEl instanceof HTMLInputElement) occEl.value = acf.occupation;
+    }
+    if (acf.stay_term) {
+      const stayEl = document.getElementById('stay-term');
+      if (stayEl instanceof HTMLSelectElement) stayEl.value = acf.stay_term;
+    }
+
+    // Budget
+    if (typeof acf.target_budget !== 'undefined') {
+      const budgetEl = document.getElementById('budget-input');
+      const budgetFormatted = document.getElementById('budget-formatted');
+      if (budgetEl instanceof HTMLInputElement) {
+        budgetEl.value = String(acf.target_budget || '');
+        if (budgetFormatted instanceof HTMLElement && acf.target_budget) {
+          budgetFormatted.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(acf.target_budget);
+        }
+      }
+    }
+
+    // Nationality (object expected)
+    if (acf.nationality) {
+      const nat = acf.nationality;
+      selectedNationalityObj = nat;
+      const natInput = document.getElementById('nationality');
+      const natCode = document.getElementById('nationality-code');
+      const natCountry = document.getElementById('nationality-country');
+      const natTerm = document.getElementById('nationality-term');
+      const selectedDisplay = document.getElementById('selected-nationality-display');
+      if (natInput instanceof HTMLInputElement) natInput.value = nat.country || nat.nationality_term || '';
+      if (natCode instanceof HTMLInputElement) natCode.value = nat.code || '';
+      if (natCountry instanceof HTMLInputElement) natCountry.value = nat.country || '';
+      if (natTerm instanceof HTMLInputElement) natTerm.value = nat.nationality_term || '';
+      if (selectedDisplay instanceof HTMLElement) {
+        selectedDisplay.textContent = 'Selected: ' + (nat.country || nat.nationality_term || '');
+        selectedDisplay.classList.remove('hidden');
+      }
+    }
+
+    // Preferences: render hierarchy and set selections
+    const prefs = (acf.preferences) ? acf.preferences : {};
+    if (prefs.preferred_regency) {
+      // select regency radio
+      const regRadio = document.querySelector("input[name='regency'][value='" + prefs.preferred_regency + "']");
+      if (regRadio instanceof HTMLInputElement) {
+        regRadio.checked = true;
+        // render districts
+        renderDistricts(prefs.preferred_regency, prefs.preferred_district || '');
+      }
+    }
+    if (prefs.preferred_district) {
+      // ensure district select exists and set
+      const districtSelect = document.getElementById('district-select');
+      if (districtSelect instanceof HTMLSelectElement) {
+        // if not populated, try to render using regency mapping
+        if (districtSelect.options.length <= 1 && prefs.preferred_regency) renderDistricts(prefs.preferred_regency, prefs.preferred_district || '');
+        districtSelect.value = prefs.preferred_district || '';
+        // render villages
+        if (prefs.preferred_district) renderVillages(prefs.preferred_district, prefs.preferred_village || '');
+      }
+    }
+    if (prefs.preferred_village) {
+      const villageSelect = document.getElementById('village-select');
+      if (villageSelect instanceof HTMLSelectElement) {
+        if (villageSelect.options.length <= 1 && prefs.preferred_district) renderVillages(prefs.preferred_district, prefs.preferred_village || '');
+        villageSelect.value = prefs.preferred_village || '';
+        // render neighborhoods and check the ones in preferred_neighborhoods
+        if (prefs.preferred_village) {
+          const allNh = searchIndex.filter((it) => it.type === 'neighborhood' && it.village === prefs.preferred_village).map((it) => it.name);
+          renderNeighborhoods(prefs.preferred_village, allNh);
+          // check preferred neighborhoods
+          if (Array.isArray(prefs.preferred_neighborhoods) && prefs.preferred_neighborhoods.length > 0) {
+            prefs.preferred_neighborhoods.forEach((nh) => {
+              const cb = document.querySelector('input[name="neighborhoods"][value="' + nh + '"]');
+              if (cb instanceof HTMLInputElement) cb.checked = true;
+            });
+          }
+          // update neighborhoods label
+          const labelEl = document.getElementById('neighborhoods-label');
+          if (labelEl) labelEl.textContent = '4. Targeted Specific Neighborhoods / Banjars in ' + prefs.preferred_village;
+        }
+      }
+    }
+
+    // If a village is present, show the selected summary breadcrumb
+    if (prefs.preferred_village) {
+      const item = {
+        name: prefs.preferred_village,
+        regency: prefs.preferred_regency || '',
+        district: prefs.preferred_district || '',
+        village: prefs.preferred_village || ''
+      };
+      showSelectedLocationSummary(item);
+      selectedMatchItem = item;
+      highlightPopularButton(prefs.preferred_village);
+      showLocationPreferencesSection(true);
+    }
+
+  } catch (err) {
+    console.error('Failed to load existing user data', err);
+  }
+}
+
+// invoke loader to populate form for editing
+loadExistingUserData();
