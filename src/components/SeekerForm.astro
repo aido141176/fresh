@@ -1,5 +1,6 @@
 ---
 import locationData from '../data/bali.json';
+import nationalitiesData from '../data/nationalities.json';
 ---
 
 
@@ -11,46 +12,44 @@ import locationData from '../data/bali.json';
 
   <div id="form-alert" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
 
-  <!-- Tab Navigation System -->
-<div class="flex border-b border-slate-700 mb-6 gap-2">
-  <button type="button" id="tab-btn-search" class="px-4 py-2 text-sm font-semibold border-b-2 border-indigo-500 text-white transition-all">Quick Village Search</button>
-  <button type="button" id="tab-btn-manual" class="px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition-all">Manual Location Filters</button>
-</div>
-
-
-<div id="tab-panel-search" class="block space-y-4">
-  <!-- (Existing content) -->
-   <h1>hfhfhf</h1>
-</div>
-
-<div id="tab-panel-manual" class="hidden space-y-4">
-  <!-- (Existing content) -->
-   <h2>kjkjkj</h2>
-
-
-
-
-  <!-- Reverse Lookup Input Interface Box -->
-  <div class="mb-6 p-5 bg-slate-900/60 border border-indigo-500/20 rounded-xl space-y-4">
-    <div>
-      <h3 class="text-sm font-bold text-indigo-400">Don't know the Regency or District?</h3>
-      <p class="text-slate-400 text-xs mt-0.5">Type any popular Bali village or neighborhood below to auto-fill the whole form instantly.</p>
-    </div>
-
-    <div class="relative">
-      <input type="text" id="geo-search-input" placeholder="e.g. Canggu, Berawa, Ubud, Bingin..." class="w-full h-11 pl-4 pr-12 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
-      <div id="search-status-icon" class="absolute inset-y-0 right-0 flex items-center pr-4 hidden">
-        <span class="text-emerald-400 font-bold text-lg">✓</span>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div id="popular-column">
+      <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Choose a popular village below to load its registration data:</p>
+      <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <button type="button" data-popular-village="CANGGU" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Canggu</button>
+        <button type="button" data-popular-village="PERERENAN" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Pererenan</button>
+        <button type="button" data-popular-village="UBUD" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Ubud</button>
+        <button type="button" data-popular-village="PECATU" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Uluwatu / Pecatu</button>
+        <button type="button" data-popular-village="SEMINYAK" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Seminyak</button>
+        <button type="button" data-popular-village="SANUR" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Sanur</button>
+        <button type="button" data-popular-village="KEROBOKAN" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Kerobakan</button>
+        <button type="button" data-popular-village="JIMBARAN" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-all">Jimbaran</button>
       </div>
+      <div id="selected-location-summary" class="hidden mt-4 rounded-xl border border-slate-700 bg-slate-900/80 p-4 text-slate-300 text-sm">
+        <p id="selected-location-title" class="font-semibold text-white"></p>
+        <p id="selected-location-breadcrumb" class="mt-2 text-xs text-slate-400"></p>
+        </div>
     </div>
 
-    <div id="search-results-box" class="hidden max-h-48 overflow-y-auto bg-slate-800 border border-slate-700 rounded-xl divide-y divide-slate-700/50 shadow-2xl text-sm"></div>
+    <div id="search-column">
+      <!-- Reverse Lookup Input Interface Box -->
+      <div class="mb-6 p-5 bg-slate-900/60 border border-indigo-500/20 rounded-xl space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-indigo-400">Don't know the Regency or District?</h3>
+          <p class="text-slate-400 text-xs mt-0.5">Search for any Regency, District, Village or neighborhood in Bali.</p>
+        </div>
 
-    <div id="injector-confirmation" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-800/80 border border-emerald-500/20 p-3 rounded-lg">
-      <p id="injector-text" class="text-xs text-slate-300"></p>
-      <button type="button" id="inject-location-btn" class="h-8 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all whitespace-nowrap">
-        Enter Location Data
-      </button>
+        <div class="relative">
+          <input type="text" id="geo-search-input" placeholder="e.g. Canggu, Berawa, Ubud, Bingin..." class="w-full h-11 pl-4 pr-12 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+          <div id="search-status-icon" class="absolute inset-y-0 right-0 flex items-center pr-4 hidden">
+            <span class="text-emerald-400 font-bold text-lg">✓</span>
+          </div>
+
+          <div id="search-results-box" class="hidden absolute left-0 top-full mt-1 w-full max-h-48 overflow-y-auto bg-slate-800 border border-slate-700 rounded-xl divide-y divide-slate-700/50 shadow-2xl text-sm z-40"></div>
+        </div>
+
+
+      </div>
     </div>
   </div>
 
@@ -66,69 +65,126 @@ import locationData from '../data/bali.json';
 
 
 
+<form id="seeker-form" class="space-y-6">
+    <div id="location-preferences-section" class="hidden bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-5 ">
+      <div id="all-bali-selectors-panel" class="space-y-5">
+        <div id="regency-panel" class="hidden">
+          <label class="block text-xs font-semibold text-slate-300 mb-3">1. Preferred Regency</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {locationData.map((reg) => (
+              <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
+                <input type="radio" name="regency" value={reg.regency_name} class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
+                <span class="text-slate-200">{reg.regency_name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+
+<div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
+  <div class="...">
+    <div id="district-panel" class="hidden">
+      <label class="block text-xs font-semibold text-slate-300 mb-2">2. Preferred District</label>
+      <div id="district-radio-grid" class="p-1">
+        <select id="district-select" class="w-full h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2 hidden">
+          <option value="">Select a district...</option>
+        </select>
+        <div class="text-xs text-slate-500 italic mt-1 hidden" id="district-empty">Select a Regency to see districts...</div>
+      </div>
+    </div>
+  </div>
+  <div class="...">
+    <div id="village-panel" class="hidden">
+      <label class="block text-xs font-semibold text-slate-300 mb-2">3. Preferred Village / Ward</label>
+      <div id="village-radio-grid" class="p-1">
+          <select id="village-select" class="w-full h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2 hidden">
+            <option value="">Select a village...</option>
+          </select>
+          <div class="text-xs text-slate-500 italic mt-1 hidden" id="village-empty">Select a District to see villages...</div>
+        </div>
+    </div>
+  </div>
+    
+  </div>
+
 </div>
 
 
 
 
 
-  <form id="seeker-form" class="space-y-6">
-    
- 
 
-    <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-5">
-      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2">Target Housing Location Preferences</h3>
-      
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">1. Preferred Regency</label>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {locationData.map((reg) => (
-            <label class="flex items-center gap-2 p-2.5 bg-slate-900/60 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-900 transition-all text-xs font-medium select-none">
-              <input type="radio" name="regency" value={reg.regency_name} class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
-              <span class="text-slate-200">{reg.regency_name}</span>
-            </label>
-          ))}
+
+
+
+
+  
+
+      <div id="neighborhoods-panel" class="hidden">
+        <label id="neighborhoods-label" class="block text-xs font-semibold text-slate-300 mb-2">4. Targeted Specific Neighborhoods / Banjars</label>
+        <div id="neighborhood-checkbox-grid" class="p-1">
+          <span class="text-xs text-slate-500 italic">Select a village to check off neighborhoods...</span>
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">2. Preferred District</label>
-        <div id="district-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic">
-          Select a Regency to see districts...
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">3. Preferred Village / Ward</label>
-        <div id="village-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-slate-900/40 border border-slate-700/60 rounded-xl text-xs text-slate-500 italic max-h-48 overflow-y-auto">
-          Select a District to see villages...
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-3">4. Targeted Specific Neighborhoods / Banjars (Group Checkboxes)</label>
-        <div id="neighborhood-checkbox-grid" class="p-4 bg-slate-900 border border-slate-700 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500 italic">
-          Select a village to check off neighborhoods...
-        </div>
-      </div>
     </div>
 
-    <div class="bg-slate-900/20 border border-slate-700 p-4 rounded-xl space-y-3">
-      <label for="budget-input" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Maximum Monthly Target Budget (IDR)</label>
+    <!-- Additional fields requested (always visible) -->
+    <div id="extra-fields" class="space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+        <label class="flex flex-col text-xs">
+          <span class="text-slate-300 text-xs font-semibold">Move in Date</span>
+          <input type="date" id="move-in-date" name="move_in_date" class="mt-1 h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2" />
+        </label>
+
+        <label class="flex flex-col text-xs">
+          <span class="text-slate-300 text-xs font-semibold">Stay Term</span>
+          <select id="stay-term" name="stay_term" class="mt-1 h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2">
+            <option value="">Select stay term</option>
+            <option value="less_3">&lt; Less than 3 months</option>
+            <option value="less_6">&lt; Less than 6 months</option>
+            <option value="less_9">&lt; Less than 9 months</option>
+            <option value="longer">Longer term / we'll see</option>
+          </select>
+        </label>
+        <label class="flex flex-col text-xs relative">
+          <span class="text-slate-300 text-xs font-semibold">Nationality</span>
+          <input type="text" id="nationality" name="nationality" autocomplete="off" placeholder="Search country (e.g. Afghanistan)" class="mt-1 h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2" />
+          <div id="nationality-results-box" class="hidden absolute left-0 top-full mt-1 w-full max-h-40 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl text-sm shadow-2xl z-40"></div>
+          <input type="hidden" id="nationality-code" name="nationality_code" value="" />
+          <input type="hidden" id="nationality-country" name="nationality_country" value="" />
+          <input type="hidden" id="nationality-term" name="nationality_term" value="" />
+          <div id="selected-nationality-display" class="hidden text-xs text-slate-400 mt-1"></div>
+        </label>
+
+        <label class="flex flex-col text-xs relative">
+          <span class="text-slate-300 text-xs font-semibold">Budget(per month)</span>
       <div class="relative rounded-xl shadow-sm">
         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
           <span class="text-slate-400 text-sm font-semibold">Rp</span>
         </div>
-        <input type="number" id="budget-input" required min="100000" step="50000" placeholder="e.g. 5000000" class="w-full h-11 pl-11 pr-24 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-semibold" />
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-          <span id="budget-formatted" class="text-xs text-indigo-400 font-bold font-mono"></span>
-        </div>
+        <input type="number" id="budget-input" required min="100000" step="50000" placeholder="e.g. 5000000" style="padding-right:5px" class="w-full h-11 pl-11 pr-24 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-semibold" />
+
       </div>
+            </label>
+
+
+
+        <label class="flex flex-col text-xs">
+          <span class="text-slate-300 text-xs font-semibold">Occupation</span>
+          <input type="text" id="occupation" name="occupation" class="mt-1 h-10 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2" />
+        </label>
+      </div>
+
+      <label class="flex flex-col text-xs">
+        <span class="text-slate-300 text-xs font-semibold">About Me</span>
+        <textarea id="about-me" name="about_me" rows="3" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2"></textarea>
+      </label>
     </div>
 
 
 
-       <div class="flex items-start gap-3 bg-slate-900/40 border border-slate-700 p-4 rounded-xl">
+    <div class="flex items-start gap-3 bg-slate-900/40 border border-slate-700 p-4 rounded-xl">
       <input type="checkbox" id="publish-profile" name="publish_profile" class="w-5 h-5 mt-0.5 text-indigo-600 bg-slate-800 border-slate-700 rounded focus:ring-indigo-500 focus:ring-offset-slate-900 focus:ring-2" />
       <div>
         <label for="publish-profile" class="text-sm font-semibold text-white cursor-pointer select-none">Publish Profile to Seekers Feed</label>
@@ -150,8 +206,6 @@ import locationData from '../data/bali.json';
       <input type="hidden" id="wp-media-id" name="profile_image_id" value="" />
     </div>
 
-
-
     <div class="flex justify-end pt-4 border-t border-slate-700">
       <button type="submit" id="submit-btn" class="h-11 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-md transition-all focus:ring-2 focus:ring-indigo-500">
         Save Profile Settings
@@ -161,26 +215,12 @@ import locationData from '../data/bali.json';
   </form>
 </div>
 
-<script define:vars={{ locationData }}>
+<script define:vars={{ locationData, nationalitiesData }}>
   window.BALI_LOCATIONS = locationData;
+  window.NATIONALITIES = (nationalitiesData && nationalitiesData.nationalities) ? nationalitiesData.nationalities : [];
 </script>
 
 <!-- Clean ESM import layout link connects your frontend directly to your script file -->
 <script>
   import "./seeker-logic.js";
-</script>
-
-
-<script>
-  const btns = { search: document.getElementById('tab-btn-search'), manual: document.getElementById('tab-btn-manual') };
-  const panels = { search: document.getElementById('tab-panel-search'), manual: document.getElementById('tab-panel-manual') };
-
-  function setTab(active: any, inactive: any) {
-    [active, inactive].forEach(t => t.btn.classList.toggle('border-indigo-500', t === active));
-    [active, inactive].forEach(t => t.btn.classList.toggle('border-transparent', t === inactive));
-    active.panel.classList.remove('hidden'); inactive.panel.classList.add('hidden');
-  }
-
-  btns.search?.addEventListener('click', () => setTab({btn: btns.search, panel: panels.search}, {btn: btns.manual, panel: panels.manual}));
-  btns.manual?.addEventListener('click', () => setTab({btn: btns.manual, panel: panels.manual}, {btn: btns.search, panel: panels.search}));
 </script>

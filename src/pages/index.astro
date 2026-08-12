@@ -1,24 +1,15 @@
 ---
-import Welcome from '../components/Welcome.astro';
+
 import Layout from '../layouts/Layout.astro';
 
-const res = await fetch("https://api.amcd.com.au/wp-json/wp/v2/posts");
-const posts = await res.json();
 
-const categories = [
-  ...new Set(
-    posts.flatMap((post: any) =>
-      post.category_terms?.map((term: any) => term.name) ?? []
-    )
-  )
-];
+
+
 
 import '../style/global.css';
+import MyBlog from '../components/MyBlog.astro';
 ---
 
-<div class="mb-6">
-
-</div>
 
 
 
@@ -29,151 +20,20 @@ import '../style/global.css';
 
 
 
-<Layout title="Dinos!">
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-6" style="background:red">
-		<div class="bg-blue-100 p-4" style="background:orange">
-			
-			  <input
-					id="search-posts"
-					type="text"
-					placeholder="Search posts..."
-					class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-				/>	
-		</div>
-		<div class="bg-green-100 p-4 col-span-2">
-			
-		
-			<!-- Filter Buttons -->
-			<div class="flex flex-wrap gap-3">
-				<button
-					class="filter-btn px-4 py-2 rounded-lg bg-blue-600 text-white transition"
-					data-category="all"
-				>
-					All
-				</button>
-
-				{categories.map((category) => (
-					<button
-					class="filter-btn px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 transition"
-					data-category={category}
-					>
-					{category}
-					</button>
-				))}
-			</div>
-
-		
-		</div>
-
-	</div>
-
-
-  <section>
-	<h1>List of Posts</h1>
-
-
-
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {
-    posts.map((post: any) => {
-      // 1. Strip HTML tags from the WordPress excerpt
-      const cleanExcerpt = post.excerpt.rendered.replace(/<\/?[^>]+(>|$)/g, "");
-      
-      // 2. Split by spaces, take the first 20 words, and join back
-      const limitedExcerpt = cleanExcerpt.split(" ").slice(0, 12).join(" ") + "...";
-	  
-	   // Get all categories
-    const categories =
-      post.category_terms?.map((term: any) => term.name) ?? [];
+<Layout title="Home">
 
 
 
 
 
-		
-      return (
-		<a href={`/blog/${post.slug}/`}
-		class="post-card"
-        data-categories={categories.join(",")}
-		data-title={post.title.rendered.toLowerCase()}
-		>
-			<div class="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-					<img src={post.featured_image_url} 
-					alt="Beach" 
-					class="w-full h-auto object-cover" />
-			<h2 class="text-xl font-bold text-slate-900 h-15 mt-4">{post.title.rendered}</h2>
-			<p>{categories.join(", ")}</p>
-			<!-- Rendered text is now perfectly limited and safe -->
-			<p class="mt-2 text-slate-600 text-sm leading-relaxed">
-				{limitedExcerpt}
-			</p>
-			</div>
-		</a>
-      );
-    })
-  }
-</div>
 
-
-
-<script>
-  const buttons =
-    document.querySelectorAll<HTMLButtonElement>(".filter-btn");
-
-  const posts =
-    document.querySelectorAll<HTMLAnchorElement>(".post-card");
-
-  const search =
-    document.querySelector<HTMLInputElement>("#search-posts");
-
-  let selectedCategory = "all";
-
-  function filterPosts() {
-    const searchTerm = search?.value.toLowerCase().trim() ?? "";
-
-    posts.forEach((post) => {
-      const categories =
-        post.dataset.categories?.split("|") ?? [];
-
-      const title =
-        post.dataset.title ?? "";
-
-      const matchesCategory =
-        selectedCategory === "all" ||
-        categories.includes(selectedCategory);
-
-      const matchesSearch =
-        title.includes(searchTerm);
-
-      post.hidden = !(matchesCategory && matchesSearch);
-    });
-  }
-
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedCategory = button.dataset.category ?? "all";
-
-      buttons.forEach((btn) => {
-        btn.classList.remove("bg-blue-600", "text-white");
-        btn.classList.add("bg-slate-200");
-      });
-
-      button.classList.remove("bg-slate-200");
-      button.classList.add("bg-blue-600", "text-white");
-
-      filterPosts();
-    });
-  });
-
-  search?.addEventListener("input", filterPosts);
-</script>
+<input type="checkbox" checked="checked" class="checkbox checkbox-success" />
 
 
 
 
-<button
-  class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-900">
-  Button
-</button>
-  </section>
+
+
+
+
 </Layout>
