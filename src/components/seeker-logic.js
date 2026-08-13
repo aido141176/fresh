@@ -24,23 +24,35 @@ const regencyPanel = document.getElementById('regency-panel');
 const districtPanel = document.getElementById('district-panel');
 const villagePanel = document.getElementById('village-panel');
 
-// Preference tags: defaults and state
+// Preference tags: defaults and state (no icons)
 const defaultPreferenceTags = [
-  'Wifi Needed 📡',
-  'Clean & Tidy ✨',
-  'Non Smoking Environment 🚭',
-  'Air Condition required ❄️',
-  'Close to beach 🏖️',
-  'Close to Cafes ☕',
-  'Close to gym 🏋️‍♂️',
-  'Space for my scooter 🛵',
-  'Space for my car 🚗'
+  'Wifi Needed',
+  'Clean & Tidy',
+  'Non Smoking Environment',
+  'Air Condition required',
+  'Close to beach',
+  'Close to Cafes',
+  'Close to gym',
+  'Space for my scooter',
+  'Space for my car'
 ];
 let preferenceTagsAll = [...defaultPreferenceTags];
 let preferenceTagsSelected = [];
 const preferenceTagsListEl = document.getElementById('preference-tags-list');
 const preferenceTagInputEl = document.getElementById('preference-tag-input');
 const preferenceTagsStatusEl = document.getElementById('preference-tags-status');
+
+// utility to strip emoji / presentation selectors from tag strings
+function stripEmojis(str) {
+  if (!str) return '';
+  try {
+    // remove common emoji ranges and variation selectors
+    return String(str).replace(/[\u{1F300}-\u{1F5FF}|\u{1F600}-\u{1F64F}|\u{1F680}-\u{1F6FF}|\u{2600}-\u{26FF}|\u{2700}-\u{27BF}|\u{FE0F}]/gu, '').replace(/\s+/g,' ').trim();
+  } catch (e) {
+    // fallback for environments without u-regex support
+    return String(str).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').replace(/\uFE0F/g,'').replace(/\s+/g,' ').trim();
+  }
+}
 
 function renderPreferenceTags() {
   if (!preferenceTagsListEl) return;
@@ -57,10 +69,10 @@ function renderPreferenceTags() {
     }
 
     const span = document.createElement('span');
-    span.textContent = (isSelected ? '✓ ' : '') + tag;
+    span.textContent = tag; // plain text only, no icons
     btn.appendChild(span);
 
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       // toggle selection
       if (preferenceTagsSelected.includes(tag)) {
         preferenceTagsSelected = preferenceTagsSelected.filter(t => t !== tag);
@@ -68,8 +80,8 @@ function renderPreferenceTags() {
         preferenceTagsSelected.push(tag);
       }
       renderPreferenceTags();
-      // save selection to backend
-      await savePreferenceTags(preferenceTagsSelected);
+      // save selection to backend (debounced)
+      savePreferenceTags(preferenceTagsSelected);
     });
 
     // small remove icon for custom tags (not defaults)
@@ -78,13 +90,13 @@ function renderPreferenceTags() {
       const rem = document.createElement('span');
       rem.className = 'ml-2 text-xs opacity-70 cursor-pointer';
       rem.textContent = '✕';
-      rem.addEventListener('click', async (ev) => {
+      rem.addEventListener('click', (ev) => {
         ev.stopPropagation();
         // remove from both lists and selected
         preferenceTagsAll = preferenceTagsAll.filter(t => t !== tag);
         preferenceTagsSelected = preferenceTagsSelected.filter(t => t !== tag);
         renderPreferenceTags();
-        await savePreferenceTags(preferenceTagsSelected);
+        savePreferenceTags(preferenceTagsSelected);
       });
       btn.appendChild(rem);
     }
@@ -101,7 +113,7 @@ function renderPreferenceTags() {
 
 // helper to add a custom tag
 function addCustomTag(tag) {
-  const cleaned = String(tag || '').trim();
+  const cleaned = stripEmojis(String(tag || '').trim());
   if (!cleaned) return;
   if (!preferenceTagsAll.includes(cleaned)) preferenceTagsAll.push(cleaned);
   if (!preferenceTagsSelected.includes(cleaned)) preferenceTagsSelected.push(cleaned);
@@ -129,7 +141,7 @@ if (preferenceTagAddBtn) {
   });
 }
 
-async function savePreferenceTags(tags) {
+async function savePreferenceTagsImmediate(tags) {
   try {
     if (preferenceTagsStatusEl) {
       preferenceTagsStatusEl.textContent = 'Saving preferences...';
@@ -142,7 +154,9 @@ async function savePreferenceTags(tags) {
       return;
     }
     const targetUserUrl = 'https://api.amcd.com.au/wp-json/wp/v2/users/' + storedUserId;
-    const body = { acf: { preference_tags: tags } };
+    // ensure tags are saved without emojis
+    const cleaned = (Array.isArray(tags) ? tags : []).map(t => stripEmojis(t)).filter(Boolean);
+    const body = { acf: { preference_tags: cleaned } };
     const res = await fetch(targetUserUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -162,6 +176,20 @@ async function savePreferenceTags(tags) {
     if (preferenceTagsStatusEl) preferenceTagsStatusEl.textContent = 'Save error';
   }
 }
+
+// simple debounce wrapper
+function debounce(fn, wait) {
+  let timer = null;
+  let lastArgs = null;
+  return function(...args) {
+    lastArgs = args;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { fn.apply(this, lastArgs); timer = null; lastArgs = null; }, wait);
+  };
+}
+
+// debounced save function (use throughout the UI)
+const savePreferenceTags = debounce(savePreferenceTagsImmediate, 700);
 
 let activeRegencyObj = null;
 let activeDistrictObj = null;
