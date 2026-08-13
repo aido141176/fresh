@@ -48,14 +48,18 @@ function renderPreferenceTags() {
   preferenceTagsAll.forEach((tag) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'px-3 py-1 rounded-full text-xs border transition-all';
+    btn.className = 'px-2.5 py-1 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 border';
     const isSelected = preferenceTagsSelected.includes(tag);
     if (isSelected) {
-      btn.classList.add('bg-indigo-600','text-white','border-indigo-500');
+      btn.classList.add('bg-teal-700','text-white','shadow-2xs','font-bold');
     } else {
-      btn.classList.add('bg-slate-800','text-slate-200','border-slate-700');
+      btn.classList.add('bg-white','text-stone-700','border-stone-300');
     }
-    btn.textContent = tag;
+
+    const span = document.createElement('span');
+    span.textContent = (isSelected ? '✓ ' : '') + tag;
+    btn.appendChild(span);
+
     btn.addEventListener('click', async () => {
       // toggle selection
       if (preferenceTagsSelected.includes(tag)) {
@@ -86,6 +90,42 @@ function renderPreferenceTags() {
     }
 
     preferenceTagsListEl.appendChild(btn);
+  });
+
+  // update selected count UI
+  const countEl = document.getElementById('preference-tags-count');
+  if (countEl) {
+    countEl.textContent = (preferenceTagsSelected.length || 0) + ' selected';
+  }
+}
+
+// helper to add a custom tag
+function addCustomTag(tag) {
+  const cleaned = String(tag || '').trim();
+  if (!cleaned) return;
+  if (!preferenceTagsAll.includes(cleaned)) preferenceTagsAll.push(cleaned);
+  if (!preferenceTagsSelected.includes(cleaned)) preferenceTagsSelected.push(cleaned);
+  renderPreferenceTags();
+  savePreferenceTags(preferenceTagsSelected);
+}
+
+// wire up add input/button if present
+if (preferenceTagInputEl) {
+  preferenceTagInputEl.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      addCustomTag(preferenceTagInputEl.value);
+      preferenceTagInputEl.value = '';
+    }
+  });
+}
+const preferenceTagAddBtn = document.getElementById('preference-tag-add-btn');
+if (preferenceTagAddBtn) {
+  preferenceTagAddBtn.addEventListener('click', () => {
+    if (preferenceTagInputEl) {
+      addCustomTag(preferenceTagInputEl.value);
+      preferenceTagInputEl.value = '';
+    }
   });
 }
 
@@ -1155,6 +1195,19 @@ async function loadExistingUserData() {
         renderDistricts(prefs.preferred_regency, prefs.preferred_district || '');
       }
     }
+
+    // Preference tags from backend (merge into defaults and mark selected)
+    if (acf.preference_tags) {
+      let storedTags = [];
+      if (Array.isArray(acf.preference_tags)) storedTags = acf.preference_tags.slice();
+      else if (typeof acf.preference_tags === 'string') storedTags = acf.preference_tags.split(',').map(s => s.trim()).filter(Boolean);
+      storedTags.forEach((t) => {
+        if (!preferenceTagsAll.includes(t)) preferenceTagsAll.push(t);
+      });
+      preferenceTagsSelected = storedTags.slice();
+      // render tags now that we may have merged custom tags
+      renderPreferenceTags();
+    }
     if (prefs.preferred_district) {
       // ensure district select exists and set
       const districtSelect = document.getElementById('district-select');
@@ -1207,6 +1260,9 @@ async function loadExistingUserData() {
     console.error('Failed to load existing user data', err);
   }
 }
+
+// initial render of preference tags (show defaults immediately)
+try { renderPreferenceTags(); } catch (e) { /* ignore if not ready */ }
 
 // invoke loader to populate form for editing
 loadExistingUserData();
