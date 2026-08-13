@@ -24,6 +24,105 @@ const regencyPanel = document.getElementById('regency-panel');
 const districtPanel = document.getElementById('district-panel');
 const villagePanel = document.getElementById('village-panel');
 
+// Preference tags: defaults and state
+const defaultPreferenceTags = [
+  'Wifi Needed 📡',
+  'Clean & Tidy ✨',
+  'Non Smoking Environment 🚭',
+  'Air Condition required ❄️',
+  'Close to beach 🏖️',
+  'Close to Cafes ☕',
+  'Close to gym 🏋️‍♂️',
+  'Space for my scooter 🛵',
+  'Space for my car 🚗'
+];
+let preferenceTagsAll = [...defaultPreferenceTags];
+let preferenceTagsSelected = [];
+const preferenceTagsListEl = document.getElementById('preference-tags-list');
+const preferenceTagInputEl = document.getElementById('preference-tag-input');
+const preferenceTagsStatusEl = document.getElementById('preference-tags-status');
+
+function renderPreferenceTags() {
+  if (!preferenceTagsListEl) return;
+  preferenceTagsListEl.innerHTML = '';
+  preferenceTagsAll.forEach((tag) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'px-3 py-1 rounded-full text-xs border transition-all';
+    const isSelected = preferenceTagsSelected.includes(tag);
+    if (isSelected) {
+      btn.classList.add('bg-indigo-600','text-white','border-indigo-500');
+    } else {
+      btn.classList.add('bg-slate-800','text-slate-200','border-slate-700');
+    }
+    btn.textContent = tag;
+    btn.addEventListener('click', async () => {
+      // toggle selection
+      if (preferenceTagsSelected.includes(tag)) {
+        preferenceTagsSelected = preferenceTagsSelected.filter(t => t !== tag);
+      } else {
+        preferenceTagsSelected.push(tag);
+      }
+      renderPreferenceTags();
+      // save selection to backend
+      await savePreferenceTags(preferenceTagsSelected);
+    });
+
+    // small remove icon for custom tags (not defaults)
+    const isDefault = defaultPreferenceTags.includes(tag);
+    if (!isDefault) {
+      const rem = document.createElement('span');
+      rem.className = 'ml-2 text-xs opacity-70 cursor-pointer';
+      rem.textContent = '✕';
+      rem.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        // remove from both lists and selected
+        preferenceTagsAll = preferenceTagsAll.filter(t => t !== tag);
+        preferenceTagsSelected = preferenceTagsSelected.filter(t => t !== tag);
+        renderPreferenceTags();
+        await savePreferenceTags(preferenceTagsSelected);
+      });
+      btn.appendChild(rem);
+    }
+
+    preferenceTagsListEl.appendChild(btn);
+  });
+}
+
+async function savePreferenceTags(tags) {
+  try {
+    if (preferenceTagsStatusEl) {
+      preferenceTagsStatusEl.textContent = 'Saving preferences...';
+      preferenceTagsStatusEl.classList.remove('hidden');
+    }
+    const storedUserId = localStorage.getItem('wp_user_id');
+    const token = localStorage.getItem('wp_session_token');
+    if (!storedUserId || !token) {
+      if (preferenceTagsStatusEl) preferenceTagsStatusEl.textContent = 'Not saved (not authenticated)';
+      return;
+    }
+    const targetUserUrl = 'https://api.amcd.com.au/wp-json/wp/v2/users/' + storedUserId;
+    const body = { acf: { preference_tags: tags } };
+    const res = await fetch(targetUserUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      if (preferenceTagsStatusEl) preferenceTagsStatusEl.textContent = 'Save failed';
+      console.warn('[Seeker] savePreferenceTags failed', res.status);
+      return;
+    }
+    if (preferenceTagsStatusEl) {
+      preferenceTagsStatusEl.textContent = 'Saved';
+      setTimeout(() => { if (preferenceTagsStatusEl) preferenceTagsStatusEl.classList.add('hidden'); }, 1500);
+    }
+  } catch (err) {
+    console.error('savePreferenceTags error', err);
+    if (preferenceTagsStatusEl) preferenceTagsStatusEl.textContent = 'Save error';
+  }
+}
+
 let activeRegencyObj = null;
 let activeDistrictObj = null;
 let activeVillageObj = null;
@@ -841,6 +940,9 @@ if (fileInput !== null) {
         const storedUserId = localStorage.getItem('wp_user_id') || '1';
 
         // Gather only your custom flatmate targeting parameters
+        // ensure preferenceTagsSelected is defined
+        const preferenceTagsToSend = Array.isArray(preferenceTagsSelected) ? preferenceTagsSelected : [];
+
         const updatePayload = {
           acf: {
             publish_profile_to_seekers: isPublished,
@@ -851,6 +953,7 @@ if (fileInput !== null) {
             nationality: nationality,
             stay_term: stayTerm,
             target_budget: budgetValue,
+            preference_tags: preferenceTagsToSend,
             preferences: {
               preferred_regency: selectedRegency,
               preferred_district: selectedDistrict,

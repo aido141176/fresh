@@ -176,6 +176,17 @@ import nationalitiesData from '../data/nationalities.json';
         </label>
       </div>
 
+      <!-- Preference Tags -->
+      <div id="preference-tags-section" class="mb-3">
+        <label class="flex flex-col text-xs">
+          <span class="text-slate-300 text-xs font-semibold">Select Your Preference Tags</span>
+          <div id="preference-tags-list" class="mt-2 flex flex-wrap gap-2"></div>
+          <input type="text" id="preference-tag-input" placeholder="Add a tag and press Enter" class="mt-2 h-9 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2" />
+          <p class="text-xs text-slate-500 mt-1">Choose from defaults or add your own. Tags are saved instantly.</p>
+          <div id="preference-tags-status" class="text-xs text-slate-400 mt-1 hidden"></div>
+        </label>
+      </div>
+
       <label class="flex flex-col text-xs">
         <span class="text-slate-300 text-xs font-semibold">About Me</span>
         <textarea id="about-me" name="about_me" rows="3" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 p-2"></textarea>
@@ -208,7 +219,7 @@ import nationalitiesData from '../data/nationalities.json';
 
     <div class="flex justify-end pt-4 border-t border-slate-700">
       <button type="submit" id="submit-btn" class="h-11 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-md transition-all focus:ring-2 focus:ring-indigo-500">
-        Save Profile Settings.
+        Save Profile Settings
       </button>
     </div>
 
