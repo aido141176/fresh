@@ -949,27 +949,53 @@ async function loadExistingUserData() {
 
     // Profile image
     const mediaIdInput = document.getElementById('wp-media-id');
+    const avatarPreview = document.getElementById('avatar-preview');
     if (mediaIdInput instanceof HTMLInputElement && acf.profile_image) {
-      mediaIdInput.value = acf.profile_image;
-      // try to fetch media url if numeric id
-      if (typeof acf.profile_image === 'number' || /^[0-9]+$/.test(String(acf.profile_image))) {
-        try {
-          const mediaRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/media/' + acf.profile_image, { headers: { 'Authorization': 'Bearer ' + token } });
-          if (mediaRes.ok) {
-            const media = await mediaRes.json();
-            const avatarPreview = document.getElementById('avatar-preview');
-            if (avatarPreview instanceof HTMLElement && media && media.source_url) {
-              avatarPreview.innerHTML = "<img src='" + media.source_url + "' class='w-full h-full object-cover' />";
+      // support multiple shapes: numeric id, string id, or object { id, source_url }
+      if (typeof acf.profile_image === 'object' && acf.profile_image !== null) {
+        const id = acf.profile_image.id || acf.profile_image.ID || null;
+        const src = acf.profile_image.source_url || acf.profile_image.source || acf.profile_image.url || null;
+        if (id) mediaIdInput.value = id;
+        else mediaIdInput.value = '';
+        if (avatarPreview instanceof HTMLElement && src) avatarPreview.innerHTML = "<img src='" + src + "' class='w-full h-full object-cover' />";
+      } else {
+        // store value; may be numeric id or URL string
+        mediaIdInput.value = acf.profile_image;
+        // try to fetch media url if numeric id
+        if (typeof acf.profile_image === 'number' || /^[0-9]+$/.test(String(acf.profile_image))) {
+          try {
+            const mediaRes = await fetch('https://api.amcd.com.au/wp-json/wp/v2/media/' + acf.profile_image, { headers: { 'Authorization': 'Bearer ' + token } });
+            if (mediaRes.ok) {
+              const media = await mediaRes.json();
+              if (avatarPreview instanceof HTMLElement && media && media.source_url) {
+                avatarPreview.innerHTML = "<img src='" + media.source_url + "' class='w-full h-full object-cover' />";
+              }
             }
-          }
-        } catch (err) { console.warn('[Seeker] loadExistingUserData: failed to fetch media', err); }
+          } catch (err) { console.warn('[Seeker] loadExistingUserData: failed to fetch media', err); }
+        } else if (typeof acf.profile_image === 'string' && (acf.profile_image.indexOf('http') === 0 || acf.profile_image.indexOf('data:') === 0)) {
+          // if the stored value is a URL, show it directly
+          if (avatarPreview instanceof HTMLElement) avatarPreview.innerHTML = "<img src='" + acf.profile_image + "' class='w-full h-full object-cover' />";
+        }
       }
     }
 
     // Move-in date, about, occupation, stay term
-    if (acf.move_in_date) {
+    if (typeof acf.move_in_date !== 'undefined' && acf.move_in_date !== null) {
       const moveEl = document.getElementById('move-in-date');
-      if (moveEl instanceof HTMLInputElement) moveEl.value = acf.move_in_date;
+      if (moveEl instanceof HTMLInputElement) {
+        // Normalize to YYYY-MM-DD for input[type=date]
+        let dateVal = acf.move_in_date;
+        if (typeof dateVal === 'number') {
+          // assume unix timestamp (seconds)
+          const dt = new Date(dateVal * (dateVal.toString().length === 13 ? 1 : 1000));
+          dateVal = dt.toISOString().slice(0,10);
+        } else if (typeof dateVal === 'string') {
+          // try to parse common formats
+          const parsed = new Date(dateVal);
+          if (!isNaN(parsed.getTime())) dateVal = parsed.toISOString().slice(0,10);
+        }
+        if (typeof dateVal === 'string') moveEl.value = dateVal;
+      }
     }
     if (acf.about_me) {
       const aboutEl = document.getElementById('about-me');
